@@ -86,7 +86,7 @@ export default function Login() {
             />
           </div>
           {/* Modern Animasyonlu Başlık */}
-          <h1 className="text-center text-xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent animate-fadeInGlow">
+          <h1 className="text-center text-xl font-bold bg-gradient-to-r from-[#00BCD4] via-[#00ACC1] to-gray-400 bg-clip-text text-transparent animate-fadeInGlow">
             Fikret Petrol Görev Takip Sistemi
           </h1>
         </CardHeader>
