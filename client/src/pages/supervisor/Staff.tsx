@@ -9,7 +9,7 @@ import { Loader2, ArrowLeft, Edit, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SupervisorStaff() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, loading: authLoading } = useAuthContext();
   const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export default function SupervisorStaff() {
     } else if (user) {
       fetchStaff();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, location]);
 
   // Realtime subscription for staff updates
   useEffect(() => {

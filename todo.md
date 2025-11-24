@@ -73,3 +73,7 @@
 - [x] Staff sayfasında personel bilgileri güncellendiginde otomatik yenilenme sorunu
 - [x] Supabase Realtime subscription ekleme
 - [x] Manuel yenileme butonu ekleme
+
+## Yeni Bug
+- [x] Personel düzenleme sayfasında yapılan değişiklikler Staff listesine yansımıyor - Çözüldü (RLS UPDATE policy eklendi)
+- [x] StaffEdit sayfasının kaydetme fonksiyonunu kontrol etme ve düzeltme
