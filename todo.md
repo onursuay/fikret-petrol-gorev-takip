@@ -86,3 +86,12 @@
 - [x] Tarih aralığı filtresi (Başlangıç - Bitiş)
 - [x] Filtreleri temizle butonu
 - [x] Filtrelenmiş görev sayısını gösterme
+
+## UI İyileştirmeleri - Filtreleme v2
+- [x] Filtreleme bölümünü daraltabilir/genişletilebilir (collapsible) yapıya dönüştürme
+- [x] Filtreleri tek satıra sığdıracak şekilde yeniden tasarlama
+- [x] Tarih aralığı seçimini yan yana gösterme (başlangıç - bitiş)
+- [x] "Filtreleri Temizle" butonunu sadece icon haline getirme (RotateCcw)
+- [x] Durum ve sonuç filtrelerini kompakt hale getirme
+- [x] İstatistik kartlarına animasyonlu efektler ekleme (hover'da soldan sağa ışık kayması)
+- [x] Daha modern ve sade görünüm (gradient renkler, iconlar, hover efektleri)

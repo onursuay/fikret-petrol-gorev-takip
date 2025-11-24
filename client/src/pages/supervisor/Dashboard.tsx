@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Filter, X } from 'lucide-react';
+import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Filter, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ export default function SupervisorDashboard() {
   const [resultFilter, setResultFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [filterExpanded, setFilterExpanded] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -169,37 +170,74 @@ export default function SupervisorDashboard() {
 
       <main className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+          {/* Bekleyen Kartı */}
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Bekleyen</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Bekleyen
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pending}</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
+                {stats.pending}
+              </div>
             </CardContent>
           </Card>
-          <Card>
+
+          {/* İletilen Kartı */}
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">İletilen</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                İletilen
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.forwarded}</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                {stats.forwarded}
+              </div>
             </CardContent>
           </Card>
-          <Card>
+
+          {/* Tamamlanan Kartı */}
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tamamlanan</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Tamamlanan
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.completed}</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
+                {stats.completed}
+              </div>
             </CardContent>
           </Card>
-          <Card>
+
+          {/* Olumlu/Olumsuz Kartı */}
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Olumlu / Olumsuz</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <ClipboardList className="w-4 h-4" />
+                Sonuçlar
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                <span className="text-green-500">{stats.positive}</span> / <span className="text-red-500">{stats.negative}</span>
+              <div className="text-2xl font-bold flex items-center gap-2">
+                <span className="flex items-center gap-1 text-green-500">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {stats.positive}
+                </span>
+                <span className="text-muted-foreground">/</span>
+                <span className="flex items-center gap-1 text-red-500">
+                  <XCircle className="w-5 h-5" />
+                  {stats.negative}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -215,103 +253,105 @@ export default function SupervisorDashboard() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            {/* Filtreleme ve Arama Bölümü */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filtreleme ve Arama
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Arama */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Personel / Görev Ara</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Personel adı veya görev başlığı..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Durum Filtresi */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Durum</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Durum seçin" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tümü</SelectItem>
-                        <SelectItem value="pending">Bekliyor</SelectItem>
-                        <SelectItem value="forwarded">İletildi</SelectItem>
-                        <SelectItem value="in_progress">Devam Ediyor</SelectItem>
-                        <SelectItem value="submitted">Onay Bekliyor</SelectItem>
-                        <SelectItem value="rejected">Reddedildi</SelectItem>
-                        <SelectItem value="completed">Tamamlandı</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Sonuç Filtresi */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Sonuç</label>
-                    <Select value={resultFilter} onValueChange={setResultFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sonuç seçin" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tümü</SelectItem>
-                        <SelectItem value="olumlu">Olumlu</SelectItem>
-                        <SelectItem value="olumsuz">Olumsuz</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Başlangıç Tarihi */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Başlangıç Tarihi</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Bitiş Tarihi */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Bitiş Tarihi</label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Temizle Butonu */}
-                  <div className="space-y-2 flex items-end">
-                    <Button
-                      variant="outline"
-                      onClick={clearFilters}
-                      className="w-full"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Filtreleri Temizle
-                    </Button>
-                  </div>
+            {/* Kompakt Filtreleme Bölümü */}
+            <div className="bg-card border rounded-lg p-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                {/* Arama */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-9"
+                  />
                 </div>
 
-                {/* Sonuç Sayısı */}
-                <div className="text-sm text-muted-foreground">
-                  {getFilteredAssignments().length} görev bulundu
+                {/* Durum/Sonuç Birleşik Filtre */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="Durum" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Durumlar</SelectItem>
+                    <SelectItem value="pending">Bekliyor</SelectItem>
+                    <SelectItem value="forwarded">İletildi</SelectItem>
+                    <SelectItem value="in_progress">Devam Ediyor</SelectItem>
+                    <SelectItem value="submitted">Onay Bekliyor</SelectItem>
+                    <SelectItem value="rejected">Reddedildi</SelectItem>
+                    <SelectItem value="completed">Tamamlandı</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={resultFilter} onValueChange={setResultFilter}>
+                  <SelectTrigger className="w-[120px] h-9">
+                    <SelectValue placeholder="Sonuç" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Sonuçlar</SelectItem>
+                    <SelectItem value="olumlu">Olumlu</SelectItem>
+                    <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Tarih Aralığı */}
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-[140px] h-9"
+                    placeholder="Başlangıç"
+                  />
+                  <span className="text-muted-foreground">-</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-[140px] h-9"
+                    placeholder="Bitiş"
+                  />
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Temizle ve Genişlet Butonları */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={clearFilters}
+                    className="h-9 w-9"
+                    title="Filtreleri Temizle"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setFilterExpanded(!filterExpanded)}
+                    className="h-9 w-9"
+                    title={filterExpanded ? "Daralt" : "Genişlet"}
+                  >
+                    {filterExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Genişletilmiş Filtreler */}
+              {filterExpanded && (
+                <div className="mt-3 pt-3 border-t">
+                  <div className="text-xs text-muted-foreground">
+                    <strong>{getFilteredAssignments().length}</strong> görev bulundu
+                  </div>
+                </div>
+              )}
+
+              {/* Sonuç Sayısı - Her Zaman Görünür */}
+              {!filterExpanded && (
+                <div className="mt-2 text-xs text-muted-foreground text-center">
+                  {getFilteredAssignments().length} görev
+                </div>
+              )}
+            </div>
 
             {/* Görev Listesi */}
             {getFilteredAssignments().map((assignment) => (
