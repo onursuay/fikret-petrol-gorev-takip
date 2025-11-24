@@ -13,6 +13,7 @@ export interface AppUser {
   department: Department;
   supervisor_id: string | null;
   is_active: boolean;
+  created_at: string;
 }
 
 interface AuthContextType {
@@ -64,7 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user data:', error);
+        throw error;
+      }
 
       if (!data.is_active) {
         throw new Error('Hesabınız pasif durumda. Yöneticinize başvurun.');
@@ -72,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error('Error in fetchUserData:', error);
       await supabase.auth.signOut();
     } finally {
       setLoading(false);

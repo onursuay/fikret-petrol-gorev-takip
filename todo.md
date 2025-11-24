@@ -55,3 +55,11 @@
 - [ ] Test kullanıcıları ve görevler ekleme
 - [ ] Responsive kontrol (mobile, tablet)
 - [ ] Performans optimizasyonu
+
+## Acil Düzeltmeler
+- [x] Supabase RLS policy'lerini düzeltme (infinite recursion hatası çözüldü)
+- [x] AuthContext'i users tablosuna uygun hale getirme
+- [x] Login sonrası yönlendirme sorununu çözme
+- [x] Test kullanıcıları mevcut (11 kullanıcı)
+- [x] Örnek görevler mevcut (93 görev)
+- [x] Giriş testi başarılı (erdinc.sam@fikretpetrol.com)

@@ -24,6 +24,8 @@ export default function Login() {
         setLocation('/supervisor/dashboard');
       } else if (user.role === 'staff') {
         setLocation('/staff/dashboard');
+      } else {
+        setLocation('/');
       }
     }
   }, [user, loading, setLocation]);
