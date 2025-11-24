@@ -169,7 +169,7 @@ export default function SupervisorDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {/* Bekleyen Kartı */}
           <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
@@ -255,21 +255,22 @@ export default function SupervisorDashboard() {
           <TabsContent value="all" className="space-y-4">
             {/* Kompakt Filtreleme Bölümü */}
             <div className="bg-card border rounded-lg p-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                {/* Arama */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Ara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-9"
-                  />
-                </div>
+              {/* Arama - Tam Genişlik */}
+              <div className="relative w-full mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-9"
+                />
+              </div>
 
-                {/* Durum/Sonuç Birleşik Filtre */}
+              {/* Filtreler - Simetrik Grid */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {/* Durum Filtresi */}
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px] h-9">
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Durum" />
                   </SelectTrigger>
                   <SelectContent>
@@ -283,8 +284,9 @@ export default function SupervisorDashboard() {
                   </SelectContent>
                 </Select>
 
+                {/* Sonuç Filtresi */}
                 <Select value={resultFilter} onValueChange={setResultFilter}>
-                  <SelectTrigger className="w-[120px] h-9">
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Sonuç" />
                   </SelectTrigger>
                   <SelectContent>
@@ -294,46 +296,45 @@ export default function SupervisorDashboard() {
                   </SelectContent>
                 </Select>
 
-                {/* Tarih Aralığı */}
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-[140px] h-9"
-                    placeholder="Başlangıç"
-                  />
-                  <span className="text-muted-foreground">-</span>
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-[140px] h-9"
-                    placeholder="Bitiş"
-                  />
-                </div>
+                {/* Başlangıç Tarihi */}
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="h-9"
+                  placeholder="Başlangıç"
+                />
 
-                {/* Temizle ve Genişlet Butonları */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={clearFilters}
-                    className="h-9 w-9"
-                    title="Filtreleri Temizle"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFilterExpanded(!filterExpanded)}
-                    className="h-9 w-9"
-                    title={filterExpanded ? "Daralt" : "Genişlet"}
-                  >
-                    {filterExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
-                </div>
+                {/* Bitiş Tarihi */}
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="h-9"
+                  placeholder="Bitiş"
+                />
+              </div>
+
+              {/* Temizle ve Genişlet Butonları */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={clearFilters}
+                  className="h-9 w-9"
+                  title="Filtreleri Temizle"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFilterExpanded(!filterExpanded)}
+                  className="h-9 w-9"
+                  title={filterExpanded ? "Daralt" : "Genişlet"}
+                >
+                  {filterExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
               </div>
 
               {/* Genişletilmiş Filtreler */}

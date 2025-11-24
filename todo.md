@@ -95,3 +95,9 @@
 - [x] Durum ve sonuç filtrelerini kompakt hale getirme
 - [x] İstatistik kartlarına animasyonlu efektler ekleme (hover'da soldan sağa ışık kayması)
 - [x] Daha modern ve sade görünüm (gradient renkler, iconlar, hover efektleri)
+
+## Mobil Responsive Düzeltmeleri
+- [x] İstatistik kartlarını mobilde 2x2 grid yapma (grid-cols-2)
+- [x] Filtreleme bölümünde simetrik 2x2 grid layout
+- [x] "Tüm Durumlar" ve "Tüm Sonuç" alanlarını simetrik hizalama
+- [x] Tarih alanlarını da simetrik hizalama (grid-cols-2)
