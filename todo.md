@@ -108,3 +108,10 @@
 - [x] Sadece mobilde (≤768px) 2x2 grid uygulama
 - [x] Mobilde tüm inputları aynı boyut ve hizalamada yapma
 - [x] Desktop/tablet düzenini değiştirmeme
+
+## Yeni Özellikler - GM Dashboard
+- [x] Fikret Petrol logosunu projeye ekleme
+- [x] Dashboard başlıklarından "Genel Müdür Dashboard" ve "Genel Müdür" yazılarını kaldırma
+- [x] Sadece logo gösterme
+- [x] Genel Müdür dashboard'a filtreleme bölümü ekleme (arama, durum, sonuç, tarih)
+- [x] Supervisor dashboard'daki filtreleme yapısını GM dashboard'a uyarlama

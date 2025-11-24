@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, RotateCcw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 export default function GMDashboard() {
@@ -16,6 +18,11 @@ export default function GMDashboard() {
   const [stats, setStats] = useState({ total: 0, positive: 0, negative: 0, pending: 0 });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [resultFilter, setResultFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -68,9 +75,38 @@ export default function GMDashboard() {
     setLocation('/');
   };
 
-  const filteredAssignments = filter === 'all'
-    ? assignments
-    : assignments.filter(a => a.tasks.department === filter);
+  const filteredAssignments = assignments.filter(assignment => {
+    // Birim filtresi
+    if (filter !== 'all' && assignment.tasks.department !== filter) return false;
+
+    // Arama filtresi (görev başlığı veya personel adı)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const titleMatch = assignment.tasks.title?.toLowerCase().includes(searchLower);
+      const staffMatch = assignment.staff?.full_name?.toLowerCase().includes(searchLower);
+      if (!titleMatch && !staffMatch) return false;
+    }
+
+    // Durum filtresi
+    if (statusFilter !== 'all' && assignment.status !== statusFilter) return false;
+
+    // Sonuç filtresi
+    if (resultFilter !== 'all' && assignment.result !== resultFilter) return false;
+
+    // Tarih filtresi
+    if (startDate && assignment.assigned_date < startDate) return false;
+    if (endDate && assignment.assigned_date > endDate) return false;
+
+    return true;
+  });
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setResultFilter('all');
+    setStartDate('');
+    setEndDate('');
+  };
 
   if (authLoading || loading) {
     return (
@@ -86,8 +122,7 @@ export default function GMDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Genel Müdür Dashboard</h1>
-              <p className="text-sm text-muted-foreground">{user?.full_name}</p>
+              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-12" />
             </div>
             <div className="flex gap-2">
               <Link href="/gm/users">
@@ -143,17 +178,98 @@ export default function GMDashboard() {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Birim Filtresi</CardTitle>
+            <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">Tümü</TabsTrigger>
-                <TabsTrigger value="istasyon">İstasyon</TabsTrigger>
-                <TabsTrigger value="muhasebe">Muhasebe</TabsTrigger>
-                <TabsTrigger value="vardiya">Vardiya</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="space-y-4">
+              {/* Birim Filtresi */}
+              <Tabs value={filter} onValueChange={setFilter}>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="all">Tümü</TabsTrigger>
+                  <TabsTrigger value="istasyon">İstasyon</TabsTrigger>
+                  <TabsTrigger value="muhasebe">Muhasebe</TabsTrigger>
+                  <TabsTrigger value="vardiya">Vardiya</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {/* Filtreleme ve Arama */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                {/* Arama */}
+                <div className="lg:col-span-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Ara..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Durum Filtresi */}
+                <div className="lg:col-span-1">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tüm Durumlar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Durumlar</SelectItem>
+                      <SelectItem value="pending">Bekliyor</SelectItem>
+                      <SelectItem value="forwarded">İletildi</SelectItem>
+                      <SelectItem value="submitted">Gönderildi</SelectItem>
+                      <SelectItem value="completed">Tamamlandı</SelectItem>
+                      <SelectItem value="rejected">Reddedildi</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sonuç Filtresi */}
+                <div className="lg:col-span-1">
+                  <Select value={resultFilter} onValueChange={setResultFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tüm Sonuç" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Sonuç</SelectItem>
+                      <SelectItem value="olumlu">Olumlu</SelectItem>
+                      <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Tarih Aralığı */}
+                <div className="grid grid-cols-2 gap-2 lg:col-span-1">
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    placeholder="Başlangıç"
+                  />
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    placeholder="Bitiş"
+                  />
+                </div>
+
+                {/* Temizle Butonu */}
+                <div className="lg:col-span-1 flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={clearFilters}
+                    title="Filtreleri Temizle"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    {filteredAssignments.length} görev
+                  </span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
