@@ -101,3 +101,10 @@
 - [x] Filtreleme bölümünde simetrik 2x2 grid layout
 - [x] "Tüm Durumlar" ve "Tüm Sonuç" alanlarını simetrik hizalama
 - [x] Tarih alanlarını da simetrik hizalama (grid-cols-2)
+
+## Filtreleme Düzeltmeleri
+- [x] Desktop filtreleme düzenini önceki haline getirme (tek satır, kompakt)
+- [x] Collapsible (açılır kapanır) özelliğini kaldırma
+- [x] Sadece mobilde (≤768px) 2x2 grid uygulama
+- [x] Mobilde tüm inputları aynı boyut ve hizalamada yapma
+- [x] Desktop/tablet düzenini değiştirmeme

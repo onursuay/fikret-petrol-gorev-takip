@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Filter, X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Filter, X, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
@@ -22,7 +22,7 @@ export default function SupervisorDashboard() {
   const [resultFilter, setResultFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [filterExpanded, setFilterExpanded] = useState(false);
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -255,103 +255,84 @@ export default function SupervisorDashboard() {
           <TabsContent value="all" className="space-y-4">
             {/* Kompakt Filtreleme Bölümü */}
             <div className="bg-card border rounded-lg p-3">
-              {/* Arama - Tam Genişlik */}
-              <div className="relative w-full mb-3">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-9"
-                />
-              </div>
+              {/* Desktop: Tek Satır Flex Layout | Mobile: 2x2 Grid */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                {/* Arama */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-9"
+                  />
+                </div>
 
-              {/* Filtreler - Simetrik Grid */}
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                {/* Durum Filtresi */}
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Durum" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tüm Durumlar</SelectItem>
-                    <SelectItem value="pending">Bekliyor</SelectItem>
-                    <SelectItem value="forwarded">İletildi</SelectItem>
-                    <SelectItem value="in_progress">Devam Ediyor</SelectItem>
-                    <SelectItem value="submitted">Onay Bekliyor</SelectItem>
-                    <SelectItem value="rejected">Reddedildi</SelectItem>
-                    <SelectItem value="completed">Tamamlandı</SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Filtreler - Desktop: Inline | Mobile: 2x2 Grid */}
+                <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3">
+                  {/* Durum Filtresi */}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-9 md:w-[140px]">
+                      <SelectValue placeholder="Durum" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Durumlar</SelectItem>
+                      <SelectItem value="pending">Bekliyor</SelectItem>
+                      <SelectItem value="forwarded">İletildi</SelectItem>
+                      <SelectItem value="in_progress">Devam Ediyor</SelectItem>
+                      <SelectItem value="submitted">Onay Bekliyor</SelectItem>
+                      <SelectItem value="rejected">Reddedildi</SelectItem>
+                      <SelectItem value="completed">Tamamlandı</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                {/* Sonuç Filtresi */}
-                <Select value={resultFilter} onValueChange={setResultFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Sonuç" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tüm Sonuçlar</SelectItem>
-                    <SelectItem value="olumlu">Olumlu</SelectItem>
-                    <SelectItem value="olumsuz">Olumsuz</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {/* Sonuç Filtresi */}
+                  <Select value={resultFilter} onValueChange={setResultFilter}>
+                    <SelectTrigger className="h-9 md:w-[120px]">
+                      <SelectValue placeholder="Sonuç" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tüm Sonuçlar</SelectItem>
+                      <SelectItem value="olumlu">Olumlu</SelectItem>
+                      <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                {/* Başlangıç Tarihi */}
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="h-9"
-                  placeholder="Başlangıç"
-                />
+                  {/* Başlangıç Tarihi */}
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-9 md:w-[140px]"
+                    placeholder="Başlangıç"
+                  />
 
-                {/* Bitiş Tarihi */}
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="h-9"
-                  placeholder="Bitiş"
-                />
-              </div>
+                  {/* Bitiş Tarihi */}
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-9 md:w-[140px]"
+                    placeholder="Bitiş"
+                  />
+                </div>
 
-              {/* Temizle ve Genişlet Butonları */}
-              <div className="flex items-center justify-between">
+                {/* Temizle Butonu */}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={clearFilters}
-                  className="h-9 w-9"
+                  className="h-9 w-9 self-center"
                   title="Filtreleri Temizle"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setFilterExpanded(!filterExpanded)}
-                  className="h-9 w-9"
-                  title={filterExpanded ? "Daralt" : "Genişlet"}
-                >
-                  {filterExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </Button>
               </div>
 
-              {/* Genişletilmiş Filtreler */}
-              {filterExpanded && (
-                <div className="mt-3 pt-3 border-t">
-                  <div className="text-xs text-muted-foreground">
-                    <strong>{getFilteredAssignments().length}</strong> görev bulundu
-                  </div>
-                </div>
-              )}
-
-              {/* Sonuç Sayısı - Her Zaman Görünür */}
-              {!filterExpanded && (
-                <div className="mt-2 text-xs text-muted-foreground text-center">
-                  {getFilteredAssignments().length} görev
-                </div>
-              )}
+              {/* Sonuç Sayısı */}
+              <div className="text-center text-xs text-muted-foreground mt-3">
+                <strong>{getFilteredAssignments().length}</strong> görev
+              </div>
             </div>
 
             {/* Görev Listesi */}
