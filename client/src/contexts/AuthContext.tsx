@@ -20,7 +20,7 @@ interface AuthContextType {
   user: AppUser | null;
   supabaseUser: SupabaseUser | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     setLoading(true);
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -92,6 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (authError) throw authError;
+
+      // "Beni Hatırla" durumunu localStorage'a kaydet
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
 
       if (authData.user) {
         await fetchUserData(authData.user.id);

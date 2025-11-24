@@ -132,3 +132,10 @@
 ## Login Sayfası İyileştirmeleri
 - [x] Login sayfasına Fikret Petrol logosu ekleme
 - [x] Arka planda yavaş hareket eden gradient ışık animasyonu ekleme
+
+## "Beni Hatırla" Özelliği
+- [x] AuthContext'e session persistence ayarları ekleme
+- [x] Login sayfasına "Beni Hatırla" checkbox'u ekleme
+- [x] Checkbox durumuna göre oturum süresini ayarlama
+- [x] Animasyonlu arka plan ışıklarını düzeltme (global CSS'e taşıma)
+- [x] Logo boyutunu büyütme (h-20'den h-28'e)

@@ -175,3 +175,53 @@
     }
   }
 }
+
+/* Login Page Background Animations */
+@keyframes moveLight1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(30vw, 20vh) scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes moveLight2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-30vw, -20vh) scale(1.3);
+    opacity: 0.5;
+  }
+}
+
+@keyframes moveLight3 {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.2;
+  }
+  33% {
+    transform: translate(-30%, -30%) scale(1.1);
+    opacity: 0.4;
+  }
+  66% {
+    transform: translate(-70%, -70%) scale(1.2);
+    opacity: 0.3;
+  }
+}
+
+.animate-moveLight1 {
+  animation: moveLight1 20s ease-in-out infinite;
+}
+
+.animate-moveLight2 {
+  animation: moveLight2 25s ease-in-out infinite;
+}
+
+.animate-moveLight3 {
+  animation: moveLight3 30s ease-in-out infinite;
+}

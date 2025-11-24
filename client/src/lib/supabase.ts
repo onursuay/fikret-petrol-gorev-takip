@@ -3,7 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://qgqfyfncyccwdjclycsw.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFncWZ5Zm5jeWNjd2RqY2x5Y3N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5ODM2ODcsImV4cCI6MjA3OTU1OTY4N30.68sZ4Ec45q6i4GrEZZohSanMW6DbLDBw0TdUNQvN6TM';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 export type Database = {
   public: {
