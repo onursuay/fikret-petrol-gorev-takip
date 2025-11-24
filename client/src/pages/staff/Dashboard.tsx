@@ -112,10 +112,9 @@ export default function StaffDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Görevlerim</h1>
-            <p className="text-sm text-muted-foreground">{user?.full_name}</p>
+            <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16" />
           </div>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />

@@ -181,93 +181,90 @@ export default function GMDashboard() {
             <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Birim Filtresi */}
-              <Tabs value={filter} onValueChange={setFilter}>
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="all">Tümü</TabsTrigger>
-                  <TabsTrigger value="istasyon">İstasyon</TabsTrigger>
-                  <TabsTrigger value="muhasebe">Muhasebe</TabsTrigger>
-                  <TabsTrigger value="vardiya">Vardiya</TabsTrigger>
-                </TabsList>
-              </Tabs>
+            {/* Birim Tab'ları */}
+            <Tabs value={filter} onValueChange={setFilter} className="mb-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="all">Tümü</TabsTrigger>
+                <TabsTrigger value="istasyon">İstasyon</TabsTrigger>
+                <TabsTrigger value="muhasebe">Muhasebe</TabsTrigger>
+                <TabsTrigger value="vardiya">Vardiya</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-              {/* Filtreleme ve Arama */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
-                {/* Arama */}
-                <div className="lg:col-span-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Ara..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-
-                {/* Durum Filtresi */}
-                <div className="lg:col-span-1">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tüm Durumlar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tüm Durumlar</SelectItem>
-                      <SelectItem value="pending">Bekliyor</SelectItem>
-                      <SelectItem value="forwarded">İletildi</SelectItem>
-                      <SelectItem value="submitted">Gönderildi</SelectItem>
-                      <SelectItem value="completed">Tamamlandı</SelectItem>
-                      <SelectItem value="rejected">Reddedildi</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sonuç Filtresi */}
-                <div className="lg:col-span-1">
-                  <Select value={resultFilter} onValueChange={setResultFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tüm Sonuç" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tüm Sonuç</SelectItem>
-                      <SelectItem value="olumlu">Olumlu</SelectItem>
-                      <SelectItem value="olumsuz">Olumsuz</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Tarih Aralığı */}
-                <div className="grid grid-cols-2 gap-2 lg:col-span-1">
+            {/* Filtreleme Alanı - Desktop: tek satır, Mobile: 2x2 grid */}
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              {/* Arama - Mobile: tam genişlik, Desktop: flex-1 */}
+              <div className="w-full md:flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    placeholder="Başlangıç"
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    placeholder="Bitiş"
+                    placeholder="Ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
                   />
                 </div>
+              </div>
 
-                {/* Temizle Butonu */}
-                <div className="lg:col-span-1 flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={clearFilters}
-                    title="Filtreleri Temizle"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    {filteredAssignments.length} görev
-                  </span>
-                </div>
+              {/* Durum ve Sonuç - Mobile: yan yana grid, Desktop: normal */}
+              <div className="grid grid-cols-2 md:flex gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Tüm Durumlar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Durumlar</SelectItem>
+                    <SelectItem value="pending">Bekliyor</SelectItem>
+                    <SelectItem value="forwarded">İletildi</SelectItem>
+                    <SelectItem value="submitted">Gönderildi</SelectItem>
+                    <SelectItem value="completed">Tamamlandı</SelectItem>
+                    <SelectItem value="rejected">Reddedildi</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={resultFilter} onValueChange={setResultFilter}>
+                  <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Tüm Sonuç" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Sonuç</SelectItem>
+                    <SelectItem value="olumlu">Olumlu</SelectItem>
+                    <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Tarih Aralığı - Mobile: yan yana grid, Desktop: normal */}
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  placeholder="gg.aa.yyyy"
+                  className="w-full md:w-[140px]"
+                />
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  placeholder="gg.aa.yyyy"
+                  className="w-full md:w-[140px]"
+                />
+              </div>
+
+              {/* Temizle Butonu ve Görev Sayısı */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={clearFilters}
+                  title="Filtreleri Temizle"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {filteredAssignments.length} görev
+                </span>
               </div>
             </div>
           </CardContent>

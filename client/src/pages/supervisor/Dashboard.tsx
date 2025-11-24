@@ -146,11 +146,10 @@ export default function SupervisorDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Görev Yönetimi</h1>
-              <p className="text-sm text-muted-foreground">{user?.full_name} - {user?.department}</p>
+              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16" />
             </div>
             <div className="flex gap-2">
               <Link href="/supervisor/staff">
@@ -253,87 +252,91 @@ export default function SupervisorDashboard() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            {/* Kompakt Filtreleme Bölümü */}
-            <div className="bg-card border rounded-lg p-3">
-              {/* Desktop: Tek Satır Flex Layout | Mobile: 2x2 Grid */}
-              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-                {/* Arama */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Ara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-9"
-                  />
+            {/* Filtreleme Bölümü - Erdinç Şam Tasarımı */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtrele ve Ara</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Filtreleme Alanı - Desktop: tek satır, Mobile: 2x2 grid */}
+                <div className="flex flex-col md:flex-row md:items-center gap-3">
+                  {/* Arama - Mobile: tam genişlik, Desktop: flex-1 */}
+                  <div className="w-full md:flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Ara..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Durum ve Sonuç - Mobile: yan yana grid, Desktop: normal */}
+                  <div className="grid grid-cols-2 md:flex gap-3">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Tüm Durumlar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tüm Durumlar</SelectItem>
+                        <SelectItem value="pending">Bekliyor</SelectItem>
+                        <SelectItem value="forwarded">İletildi</SelectItem>
+                        <SelectItem value="in_progress">Devam Ediyor</SelectItem>
+                        <SelectItem value="submitted">Onay Bekliyor</SelectItem>
+                        <SelectItem value="rejected">Reddedildi</SelectItem>
+                        <SelectItem value="completed">Tamamlandı</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={resultFilter} onValueChange={setResultFilter}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Tüm Sonuç" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tüm Sonuç</SelectItem>
+                        <SelectItem value="olumlu">Olumlu</SelectItem>
+                        <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Tarih Aralığı - Mobile: yan yana grid, Desktop: normal */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      placeholder="gg.aa.yyyy"
+                      className="w-full md:w-[140px]"
+                    />
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      placeholder="gg.aa.yyyy"
+                      className="w-full md:w-[140px]"
+                    />
+                  </div>
+
+                  {/* Temizle Butonu ve Görev Sayısı */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={clearFilters}
+                      title="Filtreleri Temizle"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                      {getFilteredAssignments().length} görev
+                    </span>
+                  </div>
                 </div>
-
-                {/* Filtreler - Desktop: Inline | Mobile: 2x2 Grid */}
-                <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3">
-                  {/* Durum Filtresi */}
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-9 md:w-[140px]">
-                      <SelectValue placeholder="Durum" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tüm Durumlar</SelectItem>
-                      <SelectItem value="pending">Bekliyor</SelectItem>
-                      <SelectItem value="forwarded">İletildi</SelectItem>
-                      <SelectItem value="in_progress">Devam Ediyor</SelectItem>
-                      <SelectItem value="submitted">Onay Bekliyor</SelectItem>
-                      <SelectItem value="rejected">Reddedildi</SelectItem>
-                      <SelectItem value="completed">Tamamlandı</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Sonuç Filtresi */}
-                  <Select value={resultFilter} onValueChange={setResultFilter}>
-                    <SelectTrigger className="h-9 md:w-[120px]">
-                      <SelectValue placeholder="Sonuç" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tüm Sonuçlar</SelectItem>
-                      <SelectItem value="olumlu">Olumlu</SelectItem>
-                      <SelectItem value="olumsuz">Olumsuz</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Başlangıç Tarihi */}
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="h-9 md:w-[140px]"
-                    placeholder="Başlangıç"
-                  />
-
-                  {/* Bitiş Tarihi */}
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="h-9 md:w-[140px]"
-                    placeholder="Bitiş"
-                  />
-                </div>
-
-                {/* Temizle Butonu */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearFilters}
-                  className="h-9 w-9 self-center"
-                  title="Filtreleri Temizle"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Sonuç Sayısı */}
-              <div className="text-center text-xs text-muted-foreground mt-3">
-                <strong>{getFilteredAssignments().length}</strong> görev
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Görev Listesi */}
             {getFilteredAssignments().map((assignment) => (

@@ -122,3 +122,9 @@
 ## Logo ve Header Düzeltmesi
 - [x] Logo boyutunu h-24'ten h-16'ya küçültme
 - [x] Header padding'ini eski haline getirme (py-4'ten py-3'e)
+
+## Tüm Dashboard'larda Logo ve Filtreleme Tasarımı Standardizasyonu
+- [x] GM Dashboard filtreleme alanını Erdinç Şam tasarımına göre güncelleme (Tümü, İstasyon, Muhasebe, Vardiya tab'ları)
+- [x] Supervisor Dashboard'a Fikret Petrol logosu ekleme
+- [x] Supervisor Dashboard filtreleme alanını Erdinç Şam tasarımına göre güncelleme
+- [x] Staff Dashboard'a Fikret Petrol logosu ekleme
