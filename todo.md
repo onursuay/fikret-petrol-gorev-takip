@@ -118,3 +118,7 @@
 
 ## Logo Boyutu Düzeltmesi
 - [x] GM Dashboard'daki logo boyutunu 2 katına büyütme (h-12'den h-24'e)
+
+## Logo ve Header Düzeltmesi
+- [x] Logo boyutunu h-24'ten h-16'ya küçültme
+- [x] Header padding'ini eski haline getirme (py-4'ten py-3'e)

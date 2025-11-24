@@ -119,10 +119,10 @@ export default function GMDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div>
-              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-24" />
+              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16" />
             </div>
             <div className="flex gap-2">
               <Link href="/gm/users">
