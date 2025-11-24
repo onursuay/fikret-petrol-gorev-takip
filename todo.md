@@ -139,3 +139,8 @@
 - [x] Checkbox durumuna göre oturum süresini ayarlama
 - [x] Animasyonlu arka plan ışıklarını düzeltme (global CSS'e taşıma)
 - [x] Logo boyutunu büyütme (h-20'den h-28'e)
+
+## Login Sayfası İyileştirmeleri v2
+- [x] "Görev Takip Sistemi" yazısını kaldırma
+- [x] Logo ile form arasındaki boşluğu azaltma
+- [x] Animasyonları daha belirgin hale getirme (opacity ve renk yoğunluğunu artırma)

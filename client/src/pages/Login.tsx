@@ -59,18 +59,18 @@ export default function Login() {
       {/* Animasyonlu Arka Plan Işıkları */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Işık 1 - Soldan sağa yavaş hareket */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent rounded-full blur-3xl animate-moveLight1" />
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-cyan-500/40 via-blue-500/25 to-transparent rounded-full blur-3xl animate-moveLight1" />
         
         {/* Işık 2 - Sağdan sola yavaş hareket */}
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-500/20 via-pink-500/10 to-transparent rounded-full blur-3xl animate-moveLight2" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-purple-500/40 via-pink-500/25 to-transparent rounded-full blur-3xl animate-moveLight2" />
         
         {/* Işık 3 - Yukarıdan aşağıya yavaş hareket */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent rounded-full blur-3xl animate-moveLight3" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-emerald-500/30 via-teal-500/20 to-transparent rounded-full blur-3xl animate-moveLight3" />
       </div>
 
       {/* Login Card */}
       <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-card/95 border-border/50">
-        <CardHeader className="space-y-4">
+        <CardHeader className="space-y-2 pb-4">
           {/* Logo */}
           <div className="flex justify-center">
             <img 
@@ -79,9 +79,6 @@ export default function Login() {
               className="h-28 w-auto"
             />
           </div>
-          <CardDescription className="text-center text-base">
-            Görev Takip Sistemi
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
