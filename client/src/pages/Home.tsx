@@ -1,8 +1,8 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { Streamdown } from 'streamdown';
+import { useAuthContext } from "@/contexts/AuthContext";
 
 /**
  * All content in this page are only for example, replace with your own feature implementation
@@ -11,7 +11,7 @@ import { Streamdown } from 'streamdown';
 export default function Home() {
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { user, loading, signOut } = useAuthContext();
 
   // If theme is switchable in App.tsx, we can implement theme toggling like this:
   // const { theme, toggleTheme } = useTheme();
@@ -26,7 +26,18 @@ export default function Home() {
         Example Page
         {/* Example: Streamdown for markdown rendering */}
         <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+        <Button
+          variant="default"
+          onClick={() => {
+            if (user) {
+              signOut();
+            } else {
+              window.location.href = getLoginUrl();
+            }
+          }}
+        >
+          {user ? "Sign out" : "Go to login"}
+        </Button>
       </main>
     </div>
   );
