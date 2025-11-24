@@ -54,13 +54,31 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Fikret Petrol
-          </CardTitle>
-          <CardDescription className="text-center">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
+      {/* Animasyonlu Arka Plan Işıkları */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Işık 1 - Soldan sağa yavaş hareket */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent rounded-full blur-3xl animate-[moveLight1_20s_ease-in-out_infinite]" />
+        
+        {/* Işık 2 - Sağdan sola yavaş hareket */}
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-500/20 via-pink-500/10 to-transparent rounded-full blur-3xl animate-[moveLight2_25s_ease-in-out_infinite]" />
+        
+        {/* Işık 3 - Yukarıdan aşağıya yavaş hareket */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent rounded-full blur-3xl animate-[moveLight3_30s_ease-in-out_infinite]" />
+      </div>
+
+      {/* Login Card */}
+      <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-card/95 border-border/50">
+        <CardHeader className="space-y-4">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <img 
+              src="/fikret-petrol-logo.png" 
+              alt="Fikret Petrol" 
+              className="h-20 w-auto"
+            />
+          </div>
+          <CardDescription className="text-center text-base">
             Görev Takip Sistemi
           </CardDescription>
         </CardHeader>
@@ -106,6 +124,46 @@ export default function Login() {
           </form>
         </CardContent>
       </Card>
+
+      {/* CSS Animasyonları */}
+      <style>{`
+        @keyframes moveLight1 {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.3;
+          }
+          50% {
+            transform: translate(30vw, 20vh) scale(1.2);
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes moveLight2 {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.3;
+          }
+          50% {
+            transform: translate(-30vw, -20vh) scale(1.3);
+            opacity: 0.5;
+          }
+        }
+
+        @keyframes moveLight3 {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.2;
+          }
+          33% {
+            transform: translate(-30%, -30%) scale(1.1);
+            opacity: 0.4;
+          }
+          66% {
+            transform: translate(-70%, -70%) scale(1.2);
+            opacity: 0.3;
+          }
+        }
+      `}</style>
     </div>
   );
 }

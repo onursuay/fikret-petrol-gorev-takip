@@ -128,3 +128,7 @@
 - [x] Supervisor Dashboard'a Fikret Petrol logosu ekleme
 - [x] Supervisor Dashboard filtreleme alanını Erdinç Şam tasarımına göre güncelleme
 - [x] Staff Dashboard'a Fikret Petrol logosu ekleme
+
+## Login Sayfası İyileştirmeleri
+- [x] Login sayfasına Fikret Petrol logosu ekleme
+- [x] Arka planda yavaş hareket eden gradient ışık animasyonu ekleme
