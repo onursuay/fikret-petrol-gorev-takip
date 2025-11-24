@@ -144,3 +144,8 @@
 - [x] "Görev Takip Sistemi" yazısını kaldırma
 - [x] Logo ile form arasındaki boşluğu azaltma
 - [x] Animasyonları daha belirgin hale getirme (opacity ve renk yoğunluğunu artırma)
+
+## Çizgi Şeklinde Animasyonlu Işıklar
+- [x] Mevcut gradient blob ışıklarını kaldırma
+- [x] Kenarlara çarpıp geri seken çizgi şeklinde ışıklar ekleme
+- [x] Birden fazla çizgi ile dinamik hareket sağlama (4 adet çizgi, farklı hızlarda)

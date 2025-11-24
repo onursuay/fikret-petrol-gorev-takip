@@ -176,52 +176,111 @@
   }
 }
 
-/* Login Page Background Animations */
-@keyframes moveLight1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.6;
+/* Login Page Background Animations - Bouncing Lines */
+@keyframes moveLine1 {
+  0% {
+    left: 10%;
+    top: 0%;
+  }
+  25% {
+    left: 90%;
+    top: 30%;
   }
   50% {
-    transform: translate(30vw, 20vh) scale(1.3);
-    opacity: 0.8;
+    left: 80%;
+    top: 90%;
+  }
+  75% {
+    left: 20%;
+    top: 60%;
+  }
+  100% {
+    left: 10%;
+    top: 0%;
   }
 }
 
-@keyframes moveLight2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.6;
+@keyframes moveLine2 {
+  0% {
+    left: 80%;
+    top: 10%;
+  }
+  25% {
+    left: 20%;
+    top: 40%;
   }
   50% {
-    transform: translate(-30vw, -20vh) scale(1.4);
-    opacity: 0.8;
+    left: 10%;
+    top: 80%;
+  }
+  75% {
+    left: 70%;
+    top: 50%;
+  }
+  100% {
+    left: 80%;
+    top: 10%;
   }
 }
 
-@keyframes moveLight3 {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
+@keyframes moveLine3 {
+  0% {
+    left: 50%;
+    top: 0%;
   }
-  33% {
-    transform: translate(-30%, -30%) scale(1.2);
-    opacity: 0.7;
+  25% {
+    left: 95%;
+    top: 50%;
   }
-  66% {
-    transform: translate(-70%, -70%) scale(1.3);
-    opacity: 0.6;
+  50% {
+    left: 40%;
+    top: 95%;
+  }
+  75% {
+    left: 5%;
+    top: 40%;
+  }
+  100% {
+    left: 50%;
+    top: 0%;
   }
 }
 
-.animate-moveLight1 {
-  animation: moveLight1 20s ease-in-out infinite;
+@keyframes moveLine4 {
+  0% {
+    left: 30%;
+    top: 90%;
+  }
+  25% {
+    left: 5%;
+    top: 20%;
+  }
+  50% {
+    left: 60%;
+    top: 5%;
+  }
+  75% {
+    left: 90%;
+    top: 70%;
+  }
+  100% {
+    left: 30%;
+    top: 90%;
+  }
 }
 
-.animate-moveLight2 {
-  animation: moveLight2 25s ease-in-out infinite;
+.animate-moveLine1 {
+  animation: moveLine1 15s linear infinite;
 }
 
-.animate-moveLight3 {
-  animation: moveLight3 30s ease-in-out infinite;
+.animate-moveLine2 {
+  animation: moveLine2 18s linear infinite;
+}
+
+.animate-moveLine3 {
+  animation: moveLine3 20s linear infinite;
+}
+
+.animate-moveLine4 {
+  animation: moveLine4 22s linear infinite;
 }

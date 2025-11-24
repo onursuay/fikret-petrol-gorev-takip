@@ -56,16 +56,19 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
-      {/* Animasyonlu Arka Plan Işıkları */}
+      {/* Animasyonlu Arka Plan Işıkları - Çizgi Şeklinde */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Işık 1 - Soldan sağa yavaş hareket */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-cyan-500/40 via-blue-500/25 to-transparent rounded-full blur-3xl animate-moveLight1" />
+        {/* Çizgi 1 */}
+        <div className="absolute w-1 h-40 bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-60 animate-moveLine1" />
         
-        {/* Işık 2 - Sağdan sola yavaş hareket */}
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl from-purple-500/40 via-pink-500/25 to-transparent rounded-full blur-3xl animate-moveLight2" />
+        {/* Çizgi 2 */}
+        <div className="absolute w-1 h-32 bg-gradient-to-b from-transparent via-purple-400 to-transparent opacity-60 animate-moveLine2" />
         
-        {/* Işık 3 - Yukarıdan aşağıya yavaş hareket */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-emerald-500/30 via-teal-500/20 to-transparent rounded-full blur-3xl animate-moveLight3" />
+        {/* Çizgi 3 */}
+        <div className="absolute w-1 h-36 bg-gradient-to-b from-transparent via-emerald-400 to-transparent opacity-60 animate-moveLine3" />
+        
+        {/* Çizgi 4 */}
+        <div className="absolute w-1 h-28 bg-gradient-to-b from-transparent via-pink-400 to-transparent opacity-60 animate-moveLine4" />
       </div>
 
       {/* Login Card */}
