@@ -284,3 +284,20 @@
 .animate-moveLine4 {
   animation: moveLine4 22s linear infinite;
 }
+
+
+/* Login Title Animation */
+@keyframes fadeInGlow {
+  0% {
+    opacity: 0;
+    filter: blur(10px) drop-shadow(0 0 0px transparent);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px) drop-shadow(0 0 8px rgba(96, 165, 250, 0.5));
+  }
+}
+
+.animate-fadeInGlow {
+  animation: fadeInGlow 1.5s ease-out forwards;
+}

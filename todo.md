@@ -149,3 +149,7 @@
 - [x] Mevcut gradient blob ışıklarını kaldırma
 - [x] Kenarlara çarpıp geri seken çizgi şeklinde ışıklar ekleme
 - [x] Birden fazla çizgi ile dinamik hareket sağlama (4 adet çizgi, farklı hızlarda)
+
+## Login Sayfası Final İyileştirmeler
+- [x] Logo altına "Fikret Petrol Görev Takip Sistemi" modern animasyonlu başlık ekleme
+- [x] Işıkları teknolojik beyaz/gümüş çizgiler olarak değiştirme (neon glow efekti)

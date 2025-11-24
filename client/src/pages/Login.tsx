@@ -56,24 +56,27 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
-      {/* Animasyonlu Arka Plan Işıkları - Çizgi Şeklinde */}
+      {/* Animasyonlu Arka Plan Işıkları - Teknolojik Beyaz Çizgiler */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Çizgi 1 */}
-        <div className="absolute w-1 h-40 bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-60 animate-moveLine1" />
+        <div className="absolute w-0.5 h-48 bg-gradient-to-b from-transparent via-white to-transparent opacity-70 shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-moveLine1" />
         
         {/* Çizgi 2 */}
-        <div className="absolute w-1 h-32 bg-gradient-to-b from-transparent via-purple-400 to-transparent opacity-60 animate-moveLine2" />
+        <div className="absolute w-0.5 h-40 bg-gradient-to-b from-transparent via-slate-200 to-transparent opacity-70 shadow-[0_0_10px_rgba(226,232,240,0.8)] animate-moveLine2" />
         
         {/* Çizgi 3 */}
-        <div className="absolute w-1 h-36 bg-gradient-to-b from-transparent via-emerald-400 to-transparent opacity-60 animate-moveLine3" />
+        <div className="absolute w-0.5 h-44 bg-gradient-to-b from-transparent via-gray-100 to-transparent opacity-70 shadow-[0_0_10px_rgba(243,244,246,0.8)] animate-moveLine3" />
         
         {/* Çizgi 4 */}
-        <div className="absolute w-1 h-28 bg-gradient-to-b from-transparent via-pink-400 to-transparent opacity-60 animate-moveLine4" />
+        <div className="absolute w-0.5 h-36 bg-gradient-to-b from-transparent via-zinc-100 to-transparent opacity-70 shadow-[0_0_10px_rgba(244,244,245,0.8)] animate-moveLine4" />
+        
+        {/* Çizgi 5 - Ekstra teknolojik his */}
+        <div className="absolute w-0.5 h-52 bg-gradient-to-b from-transparent via-white to-transparent opacity-60 shadow-[0_0_12px_rgba(255,255,255,0.9)] animate-moveLine1" style={{animationDelay: '5s'}} />
       </div>
 
       {/* Login Card */}
       <Card className="w-full max-w-md relative z-10 backdrop-blur-sm bg-card/95 border-border/50">
-        <CardHeader className="space-y-2 pb-4">
+        <CardHeader className="space-y-3 pb-4">
           {/* Logo */}
           <div className="flex justify-center">
             <img 
@@ -82,6 +85,10 @@ export default function Login() {
               className="h-28 w-auto"
             />
           </div>
+          {/* Modern Animasyonlu Başlık */}
+          <h1 className="text-center text-xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent animate-fadeInGlow">
+            Fikret Petrol Görev Takip Sistemi
+          </h1>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
