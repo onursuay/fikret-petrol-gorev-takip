@@ -77,3 +77,12 @@
 ## Yeni Bug
 - [x] Personel düzenleme sayfasında yapılan değişiklikler Staff listesine yansımıyor - Çözüldü (RLS UPDATE policy eklendi)
 - [x] StaffEdit sayfasının kaydetme fonksiyonunu kontrol etme ve düzeltme
+
+## Yeni Özellik - Filtreleme ve Arama
+- [x] Genel Süreç tab'ına filtreleme bölümü ekleme
+- [x] Personel adı / görev başlığı arama özelliği
+- [x] Durum filtresi (Bekliyor, İletildi, Tamamlandı, vb.)
+- [x] Sonuç filtresi (Olumlu, Olumsuz)
+- [x] Tarih aralığı filtresi (Başlangıç - Bitiş)
+- [x] Filtreleri temizle butonu
+- [x] Filtrelenmiş görev sayısını gösterme

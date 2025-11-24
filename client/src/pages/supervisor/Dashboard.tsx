@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send } from 'lucide-react';
+import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Filter, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 export default function SupervisorDashboard() {
@@ -15,6 +17,11 @@ export default function SupervisorDashboard() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState({ pending: 0, forwarded: 0, completed: 0, positive: 0, negative: 0 });
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [resultFilter, setResultFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -95,6 +102,36 @@ export default function SupervisorDashboard() {
       return assignments.filter(a => status.includes(a.status));
     }
     return assignments.filter(a => a.status === status);
+  };
+
+  const getFilteredAssignments = () => {
+    return assignments.filter(assignment => {
+      // Personel adı araması
+      const matchesSearch = searchTerm === '' || 
+        assignment.staff?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignment.tasks?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Durum filtresi
+      const matchesStatus = statusFilter === 'all' || assignment.status === statusFilter;
+
+      // Sonuç filtresi
+      const matchesResult = resultFilter === 'all' || assignment.result === resultFilter;
+
+      // Tarih filtresi
+      const assignedDate = new Date(assignment.assigned_date);
+      const matchesStartDate = !startDate || assignedDate >= new Date(startDate);
+      const matchesEndDate = !endDate || assignedDate <= new Date(endDate);
+
+      return matchesSearch && matchesStatus && matchesResult && matchesStartDate && matchesEndDate;
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setResultFilter('all');
+    setStartDate('');
+    setEndDate('');
   };
 
   if (authLoading || loading) {
@@ -178,7 +215,106 @@ export default function SupervisorDashboard() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            {assignments.map((assignment) => (
+            {/* Filtreleme ve Arama Bölümü */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  Filtreleme ve Arama
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Arama */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Personel / Görev Ara</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Personel adı veya görev başlığı..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Durum Filtresi */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Durum</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Durum seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tümü</SelectItem>
+                        <SelectItem value="pending">Bekliyor</SelectItem>
+                        <SelectItem value="forwarded">İletildi</SelectItem>
+                        <SelectItem value="in_progress">Devam Ediyor</SelectItem>
+                        <SelectItem value="submitted">Onay Bekliyor</SelectItem>
+                        <SelectItem value="rejected">Reddedildi</SelectItem>
+                        <SelectItem value="completed">Tamamlandı</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Sonuç Filtresi */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Sonuç</label>
+                    <Select value={resultFilter} onValueChange={setResultFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sonuç seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tümü</SelectItem>
+                        <SelectItem value="olumlu">Olumlu</SelectItem>
+                        <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Başlangıç Tarihi */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Başlangıç Tarihi</label>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Bitiş Tarihi */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Bitiş Tarihi</label>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Temizle Butonu */}
+                  <div className="space-y-2 flex items-end">
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="w-full"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Filtreleri Temizle
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Sonuç Sayısı */}
+                <div className="text-sm text-muted-foreground">
+                  {getFilteredAssignments().length} görev bulundu
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Görev Listesi */}
+            {getFilteredAssignments().map((assignment) => (
               <Card key={assignment.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -222,7 +358,7 @@ export default function SupervisorDashboard() {
                 </CardContent>
               </Card>
             ))}
-            {assignments.length === 0 && (
+            {getFilteredAssignments().length === 0 && (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <ClipboardList className="w-12 h-12 text-muted-foreground mb-4" />
