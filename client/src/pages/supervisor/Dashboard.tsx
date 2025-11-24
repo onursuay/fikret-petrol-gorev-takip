@@ -168,13 +168,69 @@ export default function SupervisorDashboard() {
           </Card>
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="all">Genel Süreç</TabsTrigger>
             <TabsTrigger value="pending">Bekleyen</TabsTrigger>
             <TabsTrigger value="forwarded">Personelde</TabsTrigger>
             <TabsTrigger value="submitted">Onay Bekleyen</TabsTrigger>
             <TabsTrigger value="completed">Tamamlanan</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            {assignments.map((assignment) => (
+              <Card key={assignment.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{assignment.tasks.title}</CardTitle>
+                      <CardDescription>{assignment.tasks.description}</CardDescription>
+                      {assignment.staff && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Personel: {assignment.staff.full_name}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2 items-end ml-4">
+                      {getStatusBadge(assignment.status)}
+                      {assignment.result && (
+                        assignment.result === 'olumlu' ? (
+                          <Badge className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Olumlu
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-red-600 hover:bg-red-700">
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Olumsuz
+                          </Badge>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>Atanma: {new Date(assignment.assigned_date).toLocaleDateString('tr-TR')}</span>
+                    {assignment.completed_at && (
+                      <span>Tamamlanma: {new Date(assignment.completed_at).toLocaleDateString('tr-TR')}</span>
+                    )}
+                    {assignment.forwarded_at && !assignment.completed_at && (
+                      <span>İletilme: {new Date(assignment.forwarded_at).toLocaleDateString('tr-TR')}</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {assignments.length === 0 && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <ClipboardList className="w-12 h-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Hiç görev bulunmuyor</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           <TabsContent value="pending" className="space-y-4">
             {filterAssignments('pending').map((assignment) => (

@@ -63,3 +63,8 @@
 - [x] Test kullanıcıları mevcut (11 kullanıcı)
 - [x] Örnek görevler mevcut (93 görev)
 - [x] Giriş testi başarılı (erdinc.sam@fikretpetrol.com)
+
+## Yeni Özellikler
+- [x] Supervisor dashboard'a "Genel Süreç" tab'ı ekleme
+- [x] Tüm görevleri sonuçlarıyla birlikte listeleme
+- [x] Görev listesinde sonuç badge'leri (olumlu/olumsuz) gösterme
