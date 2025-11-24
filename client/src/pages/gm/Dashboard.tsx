@@ -122,7 +122,7 @@ export default function GMDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-12" />
+              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-24" />
             </div>
             <div className="flex gap-2">
               <Link href="/gm/users">

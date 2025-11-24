@@ -115,3 +115,6 @@
 - [x] Sadece logo gösterme
 - [x] Genel Müdür dashboard'a filtreleme bölümü ekleme (arama, durum, sonuç, tarih)
 - [x] Supervisor dashboard'daki filtreleme yapısını GM dashboard'a uyarlama
+
+## Logo Boyutu Düzeltmesi
+- [x] GM Dashboard'daki logo boyutunu 2 katına büyütme (h-12'den h-24'e)
