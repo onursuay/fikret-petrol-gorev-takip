@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Edit } from 'lucide-react';
+import { Loader2, ArrowLeft, Edit, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SupervisorStaff() {
@@ -21,6 +21,32 @@ export default function SupervisorStaff() {
       fetchStaff();
     }
   }, [user, authLoading]);
+
+  // Realtime subscription for staff updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('staff-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: `department=eq.${user.department},role=eq.staff`
+        },
+        (payload) => {
+          console.log('Staff change detected:', payload);
+          fetchStaff();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const fetchStaff = async () => {
     if (!user) return;
@@ -61,8 +87,21 @@ export default function SupervisorStaff() {
               Geri
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-foreground mt-4">Personel Yönetimi</h1>
-          <p className="text-sm text-muted-foreground">Departman: {user?.department}</p>
+          <div className="flex justify-between items-center mt-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Personel Yönetimi</h1>
+              <p className="text-sm text-muted-foreground">Departman: {user?.department}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStaff()}
+              disabled={loading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Yenile
+            </Button>
+          </div>
         </div>
       </header>
 

@@ -68,3 +68,8 @@
 - [x] Supervisor dashboard'a "Genel Süreç" tab'ı ekleme
 - [x] Tüm görevleri sonuçlarıyla birlikte listeleme
 - [x] Görev listesinde sonuç badge'leri (olumlu/olumsuz) gösterme
+
+## Bug Düzeltmeleri
+- [x] Staff sayfasında personel bilgileri güncellendiginde otomatik yenilenme sorunu
+- [x] Supabase Realtime subscription ekleme
+- [x] Manuel yenileme butonu ekleme
