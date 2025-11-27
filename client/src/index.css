@@ -301,3 +301,35 @@
 .animate-fadeInGlow {
   animation: fadeInGlow 1.5s ease-out forwards;
 }
+
+/* Header Light Sweep Animation */
+@keyframes lightSweep {
+  0% {
+    left: -25%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    left: 125%;
+    opacity: 0;
+  }
+}
+
+.animate-light-sweep {
+  animation: lightSweep 8s linear infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 4s;
+}
+
+/* Dashboard Tab Aktif Rengi - Tüm birimlerde geçerli */
+[data-state="active"][role="tab"] {
+  background-color: #009c97 !important;
+  color: white !important;
+}

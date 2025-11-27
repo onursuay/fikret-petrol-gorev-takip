@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Upload, Camera } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import FileUpload, { UploadedFile, FileViewer } from '@/components/FileUpload';
 
 interface TaskDetailProps {
   taskId: string;
@@ -21,8 +22,7 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [notes, setNotes] = useState('');
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -53,8 +53,20 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
       
       setAssignment(data);
       setNotes(data.staff_notes || '');
-      if (data.photo_url) {
-        setPhotoPreview(data.photo_url);
+      // Mevcut dosyaları yükle
+      if (data.attachments && Array.isArray(data.attachments)) {
+        setAttachments(data.attachments);
+      } else if (data.photo_url) {
+        // Eski yapıyla uyumluluk - sadece photo_url varsa
+        setAttachments([{
+          id: 'legacy_photo',
+          name: 'Fotoğraf',
+          url: data.photo_url,
+          type: 'image/jpeg',
+          size: 0,
+          uploadedAt: data.submitted_at || new Date().toISOString(),
+          uploadedBy: data.forwarded_to || '',
+        }]);
       }
     } catch (error) {
       console.error('Error fetching assignment:', error);
@@ -64,49 +76,25 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
     }
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleFilesChange = (files: UploadedFile[]) => {
+    setAttachments(files);
   };
 
   const handleSubmit = async () => {
     if (!user || !assignment) return;
 
-    if (assignment.tasks.requires_photo && !photoFile && !assignment.photo_url) {
-      toast.error('Lütfen fotoğraf yükleyin');
+    // Fotoğraf zorunlu ise ve dosya yoksa uyar
+    if (assignment.tasks.requires_photo && attachments.length === 0) {
+      toast.error('Lütfen en az bir fotoğraf veya dosya yükleyin');
       return;
     }
 
     setSubmitting(true);
 
     try {
-      let photoUrl = assignment.photo_url;
-
-      // Upload photo if new file selected
-      if (photoFile) {
-        const fileExt = photoFile.name.split('.').pop();
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('task-photos')
-          .upload(filePath, photoFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('task-photos')
-          .getPublicUrl(filePath);
-
-        photoUrl = publicUrl;
-      }
+      // İlk resmi photo_url olarak kaydet (geriye uyumluluk)
+      const firstImage = attachments.find(f => f.type.startsWith('image/'));
+      const photoUrl = firstImage?.url || assignment.photo_url;
 
       // Update assignment
       const { error: updateError } = await supabase
@@ -115,6 +103,7 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
           status: 'submitted',
           staff_notes: notes,
           photo_url: photoUrl,
+          attachments: attachments,
           submitted_at: new Date().toISOString(),
         })
         .eq('id', taskId);
@@ -185,40 +174,28 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
               </div>
             )}
 
-            {assignment.tasks.requires_photo && (
-              <div className="space-y-2">
-                <Label>Fotoğraf {assignment.tasks.requires_photo && '*'}</Label>
-                {photoPreview && (
-                  <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                    <img
-                      src={photoPreview}
-                      alt="Task photo"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                {canEdit && (
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => document.getElementById('photo-upload')?.click()}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Fotoğraf Seç
-                    </Button>
-                    <input
-                      id="photo-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoChange}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Dosya Yükleme Alanı */}
+            <div className="space-y-2">
+              <Label>
+                Dosyalar {assignment.tasks.requires_photo && <span className="text-destructive">*</span>}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Fotoğraf, PDF, Excel, Word, PowerPoint dosyaları yükleyebilirsiniz
+              </p>
+              {canEdit ? (
+                <FileUpload
+                  assignmentId={taskId}
+                  userId={user?.id || ''}
+                  existingFiles={attachments}
+                  onFilesChange={handleFilesChange}
+                  disabled={!canEdit}
+                  maxFiles={5}
+                  showCamera={true}
+                />
+              ) : (
+                <FileViewer files={attachments} />
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notlarınız</Label>

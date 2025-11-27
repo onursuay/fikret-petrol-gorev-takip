@@ -145,7 +145,7 @@ export default function SupervisorTaskForward({ taskId }: TaskForwardProps) {
                 <SelectContent>
                   {staffList.map((staff) => (
                     <SelectItem key={staff.id} value={staff.id}>
-                      {staff.full_name} ({staff.email})
+                      {staff.full_name}
                     </SelectItem>
                   ))}
                 </SelectContent>

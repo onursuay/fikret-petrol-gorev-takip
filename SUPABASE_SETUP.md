@@ -55,6 +55,7 @@ CREATE TABLE task_assignments (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'forwarded', 'in_progress', 'submitted', 'rejected', 'completed')),
   result TEXT CHECK (result IN ('olumlu', 'olumsuz')),
   photo_url TEXT,
+  attachments JSONB DEFAULT '[]'::jsonb,
   staff_notes TEXT,
   supervisor_notes TEXT,
   forwarded_at TIMESTAMPTZ,
@@ -68,6 +69,14 @@ CREATE INDEX idx_task_assignments_assigned_to ON task_assignments(assigned_to);
 CREATE INDEX idx_task_assignments_forwarded_to ON task_assignments(forwarded_to);
 CREATE INDEX idx_task_assignments_status ON task_assignments(status);
 CREATE INDEX idx_task_assignments_assigned_date ON task_assignments(assigned_date);
+```
+
+### Mevcut Tabloya attachments Kolonu Eklemek İçin (Migration)
+
+```sql
+-- Mevcut tabloya attachments kolonu ekle
+ALTER TABLE task_assignments 
+ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]'::jsonb;
 ```
 
 ## 4. GM Comments Tablosu

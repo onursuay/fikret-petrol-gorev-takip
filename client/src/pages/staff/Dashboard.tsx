@@ -111,10 +111,17 @@ export default function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
+        {/* Işık çubuğu animasyonu - sadece PC'de */}
+        <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 -translate-y-1/2 w-64 h-[2px] bg-gradient-to-r from-transparent via-white/90 to-transparent blur-sm animate-light-sweep" />
+          <div className="absolute top-1/2 -translate-y-1/2 w-48 h-[3px] bg-gradient-to-r from-transparent via-white/70 to-transparent blur-[2px] animate-light-sweep animation-delay-1000" />
+        </div>
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center relative z-10">
           <div>
-            <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16" />
+            <Link href="/">
+              <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
+            </Link>
           </div>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />

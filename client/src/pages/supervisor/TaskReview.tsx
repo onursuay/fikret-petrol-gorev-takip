@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import FileUpload, { UploadedFile, FileViewer } from '@/components/FileUpload';
 
 interface TaskReviewProps {
   taskId: string;
@@ -20,6 +21,8 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [supervisorNotes, setSupervisorNotes] = useState('');
+  const [staffAttachments, setStaffAttachments] = useState<UploadedFile[]>([]);
+  const [supervisorAttachments, setSupervisorAttachments] = useState<UploadedFile[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -46,6 +49,26 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
       if (error) throw error;
       setAssignment(data);
       setSupervisorNotes(data.supervisor_notes || '');
+      
+      // Personelin yüklediği dosyaları al
+      if (data.attachments && Array.isArray(data.attachments)) {
+        // Personel dosyalarını ayır (uploadedBy ile)
+        const staffFiles = data.attachments.filter((f: UploadedFile) => f.uploadedBy === data.forwarded_to);
+        const supervisorFiles = data.attachments.filter((f: UploadedFile) => f.uploadedBy !== data.forwarded_to);
+        setStaffAttachments(staffFiles);
+        setSupervisorAttachments(supervisorFiles);
+      } else if (data.photo_url) {
+        // Eski yapıyla uyumluluk
+        setStaffAttachments([{
+          id: 'legacy_photo',
+          name: 'Fotoğraf',
+          url: data.photo_url,
+          type: 'image/jpeg',
+          size: 0,
+          uploadedAt: data.submitted_at || new Date().toISOString(),
+          uploadedBy: data.forwarded_to || '',
+        }]);
+      }
     } catch (error) {
       console.error('Error fetching assignment:', error);
       toast.error('Görev yüklenirken hata oluştu');
@@ -58,12 +81,16 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
     setProcessing(true);
 
     try {
+      // Tüm dosyaları birleştir
+      const allAttachments = [...staffAttachments, ...supervisorAttachments];
+      
       const { error } = await supabase
         .from('task_assignments')
         .update({
           status: 'completed',
           result: result,
           supervisor_notes: supervisorNotes,
+          attachments: allAttachments,
           completed_at: new Date().toISOString(),
         })
         .eq('id', taskId);
@@ -89,11 +116,15 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
     setProcessing(true);
 
     try {
+      // Tüm dosyaları birleştir
+      const allAttachments = [...staffAttachments, ...supervisorAttachments];
+      
       const { error } = await supabase
         .from('task_assignments')
         .update({
           status: 'rejected',
           supervisor_notes: supervisorNotes,
+          attachments: allAttachments,
         })
         .eq('id', taskId);
 
@@ -107,6 +138,10 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleSupervisorFilesChange = (files: UploadedFile[]) => {
+    setSupervisorAttachments(files);
   };
 
   if (authLoading || loading) {
@@ -153,20 +188,15 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
             {assignment.staff && (
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-1">Personel:</p>
-                <p className="text-sm text-muted-foreground">{assignment.staff.full_name} ({assignment.staff.email})</p>
+                <p className="text-sm text-muted-foreground">{assignment.staff.full_name}</p>
               </div>
             )}
 
-            {assignment.photo_url && (
+            {/* Personelin Yüklediği Dosyalar */}
+            {staffAttachments.length > 0 && (
               <div className="space-y-2">
-                <Label>Fotoğraf</Label>
-                <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img
-                    src={assignment.photo_url}
-                    alt="Task photo"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <Label>Personelin Yüklediği Dosyalar</Label>
+                <FileViewer files={staffAttachments} />
               </div>
             )}
 
@@ -187,6 +217,22 @@ export default function SupervisorTaskReview({ taskId }: TaskReviewProps) {
                 value={supervisorNotes}
                 onChange={(e) => setSupervisorNotes(e.target.value)}
                 rows={4}
+              />
+            </div>
+
+            {/* Amir Dosya Yükleme */}
+            <div className="space-y-2">
+              <Label>Dosya Ekle (Opsiyonel)</Label>
+              <p className="text-xs text-muted-foreground">
+                Fotoğraf, PDF, Excel, Word, PowerPoint dosyaları yükleyebilirsiniz
+              </p>
+              <FileUpload
+                assignmentId={taskId}
+                userId={user?.id || ''}
+                existingFiles={supervisorAttachments}
+                onFilesChange={handleSupervisorFilesChange}
+                maxFiles={5}
+                showCamera={true}
               />
             </div>
 

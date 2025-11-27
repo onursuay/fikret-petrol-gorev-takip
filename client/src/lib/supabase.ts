@@ -72,6 +72,15 @@ export type Database = {
           status: 'pending' | 'forwarded' | 'in_progress' | 'submitted' | 'rejected' | 'completed';
           result: 'olumlu' | 'olumsuz' | null;
           photo_url: string | null;
+          attachments: Array<{
+            id: string;
+            name: string;
+            url: string;
+            type: string;
+            size: number;
+            uploadedAt: string;
+            uploadedBy: string;
+          }> | null;
           staff_notes: string | null;
           supervisor_notes: string | null;
           forwarded_at: string | null;

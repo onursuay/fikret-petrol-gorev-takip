@@ -112,7 +112,6 @@ export default function SupervisorStaff() {
               <CardContent className="flex justify-between items-center p-6">
                 <div>
                   <h3 className="font-semibold text-lg">{member.full_name}</h3>
-                  <p className="text-sm text-muted-foreground">{member.email}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <Badge variant={member.is_active ? 'default' : 'secondary'}>

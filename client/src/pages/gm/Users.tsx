@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft, Plus, Edit, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, ArrowLeft, Plus, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GMUsers() {
@@ -14,8 +14,7 @@ export default function GMUsers() {
   const { user, loading: authLoading } = useAuthContext();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [deptFilter, setDeptFilter] = useState('all');
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -44,26 +43,39 @@ export default function GMUsers() {
 
   const toggleActive = async (userId: string, currentStatus: boolean) => {
     try {
+      setUpdatingUserId(userId);
+      
+      // Update local state immediately for better UX
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.id === userId ? { ...u, is_active: !currentStatus } : u
+        )
+      );
+
       const { error } = await supabase
         .from('users')
         .update({ is_active: !currentStatus })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        // Revert local state on error
+        setUsers(prevUsers => 
+          prevUsers.map(u => 
+            u.id === userId ? { ...u, is_active: currentStatus } : u
+          )
+        );
+        throw error;
+      }
 
       toast.success(currentStatus ? 'Kullanıcı pasif yapıldı' : 'Kullanıcı aktif yapıldı');
-      fetchUsers();
     } catch (error) {
       console.error('Error toggling user status:', error);
       toast.error('İşlem sırasında hata oluştu');
+    } finally {
+      setUpdatingUserId(null);
     }
   };
-
-  const filteredUsers = users.filter(u => {
-    if (roleFilter !== 'all' && u.role !== roleFilter) return false;
-    if (deptFilter !== 'all' && u.department !== deptFilter) return false;
-    return true;
-  });
 
   if (authLoading || loading) {
     return (
@@ -96,50 +108,12 @@ export default function GMUsers() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Rol Filtresi</label>
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tüm Roller</SelectItem>
-                    <SelectItem value="general_manager">Genel Müdür</SelectItem>
-                    <SelectItem value="supervisor">Birim Amiri</SelectItem>
-                    <SelectItem value="shift_supervisor">Vardiya Şefi</SelectItem>
-                    <SelectItem value="staff">Personel</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Departman Filtresi</label>
-                <Select value={deptFilter} onValueChange={setDeptFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tüm Departmanlar</SelectItem>
-                    <SelectItem value="yonetim">Yönetim</SelectItem>
-                    <SelectItem value="istasyon">İstasyon</SelectItem>
-                    <SelectItem value="muhasebe">Muhasebe</SelectItem>
-                    <SelectItem value="vardiya">Vardiya</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <div className="space-y-4">
-          {filteredUsers.map((u) => (
+          {users.map((u) => (
             <Card key={u.id}>
               <CardContent className="flex justify-between items-center p-6">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">{u.full_name}</h3>
-                  <p className="text-sm text-muted-foreground">{u.email}</p>
                   <div className="flex gap-2 mt-2">
                     <Badge variant="outline">{u.role}</Badge>
                     <Badge variant="secondary">{u.department}</Badge>
@@ -149,13 +123,16 @@ export default function GMUsers() {
                   <Badge variant={u.is_active ? 'default' : 'secondary'}>
                     {u.is_active ? 'Aktif' : 'Pasif'}
                   </Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => toggleActive(u.id, u.is_active)}
-                  >
-                    {u.is_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={u.is_active}
+                      disabled={updatingUserId === u.id}
+                      onCheckedChange={() => toggleActive(u.id, u.is_active)}
+                    />
+                    {updatingUserId === u.id && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
                   <Link href={`/gm/users/${u.id}/edit`}>
                     <Button size="sm" variant="outline">
                       <Edit className="w-4 h-4 mr-2" />

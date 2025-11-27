@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Send } from 'lucide-react';
+import { Loader2, ArrowLeft, Send, Calendar, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import FileUpload, { UploadedFile, FileViewer } from '@/components/FileUpload';
 
 interface TaskDetailProps {
   taskId: string;
@@ -22,6 +23,8 @@ export default function GMTaskDetail({ taskId }: TaskDetailProps) {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState<UploadedFile[]>([]);
+  const [gmAttachments, setGmAttachments] = useState<UploadedFile[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,6 +60,27 @@ export default function GMTaskDetail({ taskId }: TaskDetailProps) {
 
       setAssignment(assignmentRes.data);
       setComments(commentsRes.data || []);
+      
+      // Dosyaları yükle
+      const data = assignmentRes.data;
+      if (data.attachments && Array.isArray(data.attachments)) {
+        // GM dosyalarını ayır
+        const otherFiles = data.attachments.filter((f: UploadedFile) => f.uploadedBy !== user?.id);
+        const gmFiles = data.attachments.filter((f: UploadedFile) => f.uploadedBy === user?.id);
+        setAttachments(otherFiles);
+        setGmAttachments(gmFiles);
+      } else if (data.photo_url) {
+        // Eski yapıyla uyumluluk
+        setAttachments([{
+          id: 'legacy_photo',
+          name: 'Fotoğraf',
+          url: data.photo_url,
+          type: 'image/jpeg',
+          size: 0,
+          uploadedAt: data.submitted_at || new Date().toISOString(),
+          uploadedBy: data.forwarded_to || '',
+        }]);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Veriler yüklenirken hata oluştu');
@@ -90,6 +114,25 @@ export default function GMTaskDetail({ taskId }: TaskDetailProps) {
       toast.error('Yorum eklenirken hata oluştu');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleGmFilesChange = async (files: UploadedFile[]) => {
+    setGmAttachments(files);
+    
+    // Tüm dosyaları birleştir ve kaydet
+    const allAttachments = [...attachments, ...files];
+    
+    try {
+      const { error } = await supabase
+        .from('task_assignments')
+        .update({ attachments: allAttachments })
+        .eq('id', taskId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving attachments:', error);
+      toast.error('Dosya kaydedilirken hata oluştu');
     }
   };
 
@@ -161,12 +204,131 @@ export default function GMTaskDetail({ taskId }: TaskDetailProps) {
               )}
             </div>
 
-            {assignment.photo_url && (
-              <div className="space-y-2">
-                <Label>Fotoğraf</Label>
-                <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img src={assignment.photo_url} alt="Task" className="w-full h-full object-cover" />
+            {/* Tarih Takip Bölümü */}
+            <div className="border border-border rounded-lg p-4 bg-muted/30">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Görev Zaman Çizelgesi
+              </h3>
+              <div className="space-y-3">
+                {/* Atanma Tarihi */}
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Görev Atandı</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(assignment.assigned_date).toLocaleDateString('tr-TR', {
+                        weekday: 'long',
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Personele İletilme */}
+                {assignment.forwarded_at && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Personele İletildi</p>
+                      <p className="text-xs text-cyan-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(assignment.forwarded_at).toLocaleString('tr-TR', {
+                          weekday: 'long',
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Personel Tamamladı */}
+                {assignment.submitted_at && (() => {
+                  const assignedDate = new Date(assignment.assigned_date);
+                  const submittedDate = new Date(assignment.submitted_at);
+                  const isSameDay = assignedDate.toDateString() === submittedDate.toDateString();
+                  const delayDays = Math.floor((submittedDate.getTime() - assignedDate.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 ${isSameDay ? 'bg-emerald-500' : delayDays > 0 ? 'bg-orange-500' : 'bg-yellow-500'}`}></div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">Personel Tamamladı</p>
+                          {isSameDay ? (
+                            <Badge className="bg-emerald-500 text-xs py-0">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Aynı Gün
+                            </Badge>
+                          ) : delayDays > 0 ? (
+                            <Badge className="bg-orange-500 text-xs py-0">
+                              <AlertTriangle className="w-3 h-3 mr-1" />
+                              {delayDays} Gün Gecikme
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className={`text-xs flex items-center gap-1 ${isSameDay ? 'text-emerald-400' : delayDays > 0 ? 'text-orange-400' : 'text-yellow-400'}`}>
+                          <Clock className="w-3 h-3" />
+                          {submittedDate.toLocaleString('tr-TR', {
+                            weekday: 'long',
+                            day: '2-digit',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Amir Onayladı */}
+                {assignment.completed_at && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Amir Onayladı ({assignment.result === 'olumlu' ? 'Olumlu' : 'Olumsuz'})</p>
+                      <p className="text-xs text-green-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(assignment.completed_at).toLocaleString('tr-TR', {
+                          weekday: 'long',
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Henüz tamamlanmamış */}
+                {!assignment.submitted_at && assignment.status !== 'completed' && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-gray-500 mt-1.5 animate-pulse"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-muted-foreground">Bekliyor...</p>
+                      <p className="text-xs text-muted-foreground">Personel henüz görevi tamamlamadı</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Yüklenen Dosyalar */}
+            {attachments.length > 0 && (
+              <div className="space-y-2">
+                <Label>Yüklenen Dosyalar</Label>
+                <FileViewer files={attachments} />
               </div>
             )}
 
@@ -187,6 +349,22 @@ export default function GMTaskDetail({ taskId }: TaskDetailProps) {
                 </div>
               </div>
             )}
+
+            {/* GM Dosya Yükleme */}
+            <div className="space-y-2">
+              <Label>Dosya Ekle</Label>
+              <p className="text-xs text-muted-foreground">
+                Fotoğraf, PDF, Excel, Word, PowerPoint dosyaları yükleyebilirsiniz
+              </p>
+              <FileUpload
+                assignmentId={taskId}
+                userId={user?.id || ''}
+                existingFiles={gmAttachments}
+                onFilesChange={handleGmFilesChange}
+                maxFiles={5}
+                showCamera={true}
+              />
+            </div>
           </CardContent>
         </Card>
 

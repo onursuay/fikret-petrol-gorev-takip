@@ -1,0 +1,26 @@
+.tab-bar {
+  display: flex;
+  gap: 16px;
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-bar button {
+  flex: 0 0 auto;
+}
+
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-bar {
+  scrollbar-width: none;
+}
+
+@media (min-width: 768px) {
+  .tab-bar {
+    overflow-x: visible;
+  }
+}
+
