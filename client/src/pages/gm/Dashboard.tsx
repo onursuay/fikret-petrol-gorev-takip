@@ -52,6 +52,7 @@ export default function GMDashboard() {
   const [showDateModal, setShowDateModal] = useState(false);
   const [dateStep, setDateStep] = useState<'start' | 'end'>('start');
   const [tempStartDate, setTempStartDate] = useState('');
+  const [tempEndDate, setTempEndDate] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -143,6 +144,7 @@ export default function GMDashboard() {
     setShowDateModal(true);
     setDateStep('start');
     setTempStartDate('');
+    setTempEndDate('');
   };
 
   const handleStartDateNext = () => {
@@ -153,13 +155,13 @@ export default function GMDashboard() {
     }
   };
 
-  const handleEndDateApply = (endDateValue: string) => {
-    if (!tempStartDate || !endDateValue) {
+  const handleEndDateApply = () => {
+    if (!tempStartDate || !tempEndDate) {
       toast.error('Lütfen her iki tarihi de seçin');
       return;
     }
     setStartDate(tempStartDate);
-    setEndDate(endDateValue);
+    setEndDate(tempEndDate);
     setShowDateModal(false);
     toast.success('Tarih aralığı uygulandı');
   };
@@ -975,20 +977,26 @@ export default function GMDashboard() {
                 <Input
                   type="date"
                   min={tempStartDate}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleEndDateApply(e.target.value);
-                    }
-                  }}
+                  value={tempEndDate}
+                  onChange={(e) => setTempEndDate(e.target.value)}
                   className="w-full"
                 />
-                <Button 
-                  variant="outline"
-                  onClick={() => setDateStep('start')}
-                  className="w-full"
-                >
-                  ← Geri
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setDateStep('start')}
+                    className="flex-1"
+                  >
+                    ← Geri
+                  </Button>
+                  <Button 
+                    onClick={handleEndDateApply}
+                    disabled={!tempEndDate}
+                    className="flex-1"
+                  >
+                    Uygula
+                  </Button>
+                </div>
               </>
             )}
           </div>
