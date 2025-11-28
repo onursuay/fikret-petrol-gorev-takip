@@ -46,6 +46,12 @@ export default function GMDashboard() {
     description: '',
     requires_photo: false
   });
+  
+  // UI state'leri
+  const [showSearchInput, setShowSearchInput] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [dateStep, setDateStep] = useState<'start' | 'end'>('start');
+  const [tempStartDate, setTempStartDate] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -130,6 +136,48 @@ export default function GMDashboard() {
     setResultFilter('all');
     setStartDate('');
     setEndDate('');
+  };
+
+  // Tarih seçimi fonksiyonları
+  const handleDateModalOpen = () => {
+    setShowDateModal(true);
+    setDateStep('start');
+    setTempStartDate('');
+  };
+
+  const handleStartDateNext = () => {
+    if (tempStartDate) {
+      setDateStep('end');
+    } else {
+      toast.error('Lütfen başlangıç tarihi seçin');
+    }
+  };
+
+  const handleEndDateApply = (endDateValue: string) => {
+    if (!tempStartDate || !endDateValue) {
+      toast.error('Lütfen her iki tarihi de seçin');
+      return;
+    }
+    setStartDate(tempStartDate);
+    setEndDate(endDateValue);
+    setShowDateModal(false);
+    toast.success('Tarih aralığı uygulandı');
+  };
+
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    toast.info('Tarih filtresi temizlendi');
+  };
+
+  // Tarih aralığını formatla
+  const formatDateRange = () => {
+    if (startDate && endDate) {
+      const start = new Date(startDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+      const end = new Date(endDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+      return `${start} - ${end}`;
+    }
+    return 'Tarih Seç';
   };
 
   // Excel yükleme fonksiyonları
@@ -392,37 +440,7 @@ export default function GMDashboard() {
             <Link href="/">
               <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
-            <div className="flex gap-2 items-center flex-wrap">
-              {/* Yeni özellik butonları */}
-              <Button 
-                onClick={() => setShowUploadModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Görev Listesi Yükle
-              </Button>
-              
-              <Button 
-                onClick={exportToExcel}
-                disabled={isExporting}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {isExporting ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4 mr-2" />
-                )}
-                Rapor İndir
-              </Button>
-              
-              <Button 
-                onClick={() => setShowNewTaskModal(true)}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Yeni Görev
-              </Button>
-              
+            <div className="flex gap-2 items-center">
               <NotificationBell userId={user?.id} />
               
               <Link href="/gm/users">
@@ -481,109 +499,153 @@ export default function GMDashboard() {
           <CardHeader>
             <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Birim Tab'ları */}
-            <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="w-full">
-                {[
-                  { value: 'all', label: 'Tümü' },
-                  { value: 'istasyon', label: 'İstasyon' },
-                  { value: 'muhasebe', label: 'Muhasebe' },
-                  { value: 'vardiya', label: 'Vardiya' },
-                ].map(tab => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="flex-1 text-xs md:text-sm"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+          <CardContent className="space-y-3 overflow-hidden">
+            {/* Desktop Layout */}
+            <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
+              {/* Sol Taraf: Filtreler */}
+              <div className="flex items-center gap-2">
+                {/* Arama İkonu/Input */}
+                <div className="relative">
+                  {!showSearchInput ? (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowSearchInput(true)}
+                      className="w-10 h-10"
+                    >
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="Ara..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-64"
+                        autoFocus
+                        onBlur={() => !searchTerm && setShowSearchInput(false)}
+                      />
+                      {searchTerm && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSearchTerm('');
+                            setShowSearchInput(false);
+                          }}
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-            {/* Filtreleme Alanı - Desktop */}
-            <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto_auto] gap-2 items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+                {/* Birim Tabs */}
+                <Tabs value={filter} onValueChange={setFilter}>
+                  <TabsList>
+                    {[
+                      { value: 'all', label: 'Tümü' },
+                      { value: 'istasyon', label: 'İstasyon' },
+                      { value: 'muhasebe', label: 'Muhasebe' },
+                      { value: 'vardiya', label: 'Vardiya' },
+                    ].map(tab => (
+                      <TabsTrigger key={tab.value} value={tab.value} className="text-sm">
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+
+                {/* Tarih Seç Butonu */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    onClick={handleDateModalOpen}
+                    className="gap-1"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    {formatDateRange()}
+                  </Button>
+                  {(startDate || endDate) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={clearDateFilter}
+                      className="h-8 w-8"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
+
+                {/* Durum Dropdown */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Tüm Durumlar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Durumlar</SelectItem>
+                    <SelectItem value="pending">Bekliyor</SelectItem>
+                    <SelectItem value="forwarded">İletildi</SelectItem>
+                    <SelectItem value="submitted">Gönderildi</SelectItem>
+                    <SelectItem value="completed">Tamamlandı</SelectItem>
+                    <SelectItem value="rejected">Reddedildi</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Sonuç Dropdown */}
+                <Select value={resultFilter} onValueChange={setResultFilter}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Tüm Sonuç" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Sonuç</SelectItem>
+                    <SelectItem value="olumlu">Olumlu</SelectItem>
+                    <SelectItem value="olumsuz">Olumsuz</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Tüm Durumlar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm Durumlar</SelectItem>
-                  <SelectItem value="pending">Bekliyor</SelectItem>
-                  <SelectItem value="forwarded">İletildi</SelectItem>
-                  <SelectItem value="submitted">Gönderildi</SelectItem>
-                  <SelectItem value="completed">Tamamlandı</SelectItem>
-                  <SelectItem value="rejected">Reddedildi</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Sağ Taraf: Aksiyon Butonları */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                  size="sm"
+                >
+                  <Upload className="w-4 h-4 mr-1" />
+                  Görev Listesi Yükle
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowNewTaskModal(true)}
+                  className="bg-orange-600 hover:bg-orange-700 text-white text-sm"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Yeni Görev
+                </Button>
 
-              <Select value={resultFilter} onValueChange={setResultFilter}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Tüm Sonuç" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tüm Sonuç</SelectItem>
-                  <SelectItem value="olumlu">Olumlu</SelectItem>
-                  <SelectItem value="olumsuz">Olumsuz</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                placeholder="gg.aa.yyyy"
-                className="w-[130px]"
-              />
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                placeholder="gg.aa.yyyy"
-                className="w-[130px]"
-              />
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={clearFilters}
-                title="Filtreleri Temizle"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-
-              <Button
-                onClick={exportToExcel}
-                className="bg-[#4CAF50] hover:bg-[#45a049] text-white"
-                disabled={isExporting || !filteredAssignments.length}
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Excel'e Aktar
-                  </>
-                )}
-              </Button>
-
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
-                {filteredAssignments.length} görev
-              </span>
+                <Button
+                  onClick={exportToExcel}
+                  className="bg-green-600 hover:bg-green-700 text-white text-sm"
+                  disabled={isExporting || !filteredAssignments.length}
+                  size="sm"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <FileSpreadsheet className="w-4 h-4 mr-1" />
+                      Excel'e Aktar
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
-            {/* Filtreleme Alanı - Mobile */}
+            {/* Mobile Layout */}
             <div className="md:hidden space-y-3">
               {/* Arama */}
               <div className="relative">
@@ -596,7 +658,23 @@ export default function GMDashboard() {
                 />
               </div>
 
-              {/* Durum ve Sonuç - Yan yana */}
+              {/* Birim Tabs */}
+              <Tabs value={filter} onValueChange={setFilter}>
+                <TabsList className="w-full grid grid-cols-4">
+                  {[
+                    { value: 'all', label: 'Tümü' },
+                    { value: 'istasyon', label: 'İstasyon' },
+                    { value: 'muhasebe', label: 'Muhasebe' },
+                    { value: 'vardiya', label: 'Vardiya' },
+                  ].map(tab => (
+                    <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+
+              {/* Durum ve Sonuç */}
               <div className="grid grid-cols-2 gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
@@ -624,51 +702,45 @@ export default function GMDashboard() {
                 </Select>
               </div>
 
-              {/* Tarihler - Yan yana */}
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  placeholder="gg.aa.yyyy"
-                />
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  placeholder="gg.aa.yyyy"
-                />
-              </div>
+              {/* Tarih Seç */}
+              <Button
+                variant="outline"
+                onClick={handleDateModalOpen}
+                className="w-full"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                {formatDateRange()}
+              </Button>
 
-              {/* Reset, Excel ve Görev Sayısı */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={clearFilters}
-                  title="Filtreleri Temizle"
+              {/* Aksiyon Butonları */}
+              <div className="grid grid-cols-3 gap-2">
+                <Button 
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                  size="sm"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <Upload className="w-3 h-3 mr-1" />
+                  Yükle
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowNewTaskModal(true)}
+                  className="bg-orange-600 hover:bg-orange-700 text-white text-xs"
+                  size="sm"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Yeni
                 </Button>
 
                 <Button
                   onClick={exportToExcel}
-                  className="bg-[#4CAF50] hover:bg-[#45a049] text-white flex-1"
-                  disabled={isExporting || !filteredAssignments.length}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                  disabled={isExporting}
+                  size="sm"
                 >
-                  {isExporting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      Excel'e Aktar
-                    </>
-                  )}
+                  <FileSpreadsheet className="w-3 h-3 mr-1" />
+                  Excel
                 </Button>
-
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {filteredAssignments.length} görev
-                </span>
               </div>
             </div>
           </CardContent>
@@ -866,6 +938,60 @@ export default function GMDashboard() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tarih Seçimi Modal */}
+      <Dialog open={showDateModal} onOpenChange={setShowDateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {dateStep === 'start' ? '📅 Başlangıç Tarihi Seçin' : '📅 Bitiş Tarihi Seçin'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {dateStep === 'start' ? (
+              <>
+                <Input
+                  type="date"
+                  value={tempStartDate}
+                  onChange={(e) => setTempStartDate(e.target.value)}
+                  className="w-full"
+                />
+                <Button 
+                  onClick={handleStartDateNext}
+                  disabled={!tempStartDate}
+                  className="w-full"
+                >
+                  İleri →
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Başlangıç: {new Date(tempStartDate).toLocaleDateString('tr-TR')}
+                </div>
+                <Input
+                  type="date"
+                  min={tempStartDate}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleEndDateApply(e.target.value);
+                    }
+                  }}
+                  className="w-full"
+                />
+                <Button 
+                  variant="outline"
+                  onClick={() => setDateStep('start')}
+                  className="w-full"
+                >
+                  ← Geri
+                </Button>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
