@@ -142,3 +142,4 @@ export const getDelayBadge = (assignedDate: string, completedAt: string | null) 
   return { color: 'red', text: `${diffDays} günde` };
 };
 
+

@@ -2,9 +2,100 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+let audioContext: AudioContext | null = null;
+let isAudioEnabled = false;
+let isAudioInitialized = false;
+
+const playNotificationSound = () => {
+  if (!isAudioEnabled || !audioContext) return;
+  
+  try {
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
+    const osc1 = audioContext.createOscillator();
+    const gain1 = audioContext.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioContext.destination);
+    osc1.frequency.value = 800;
+    osc1.type = 'sine';
+    gain1.gain.value = 0.3;
+    osc1.start(audioContext.currentTime);
+    osc1.stop(audioContext.currentTime + 0.15);
+    
+    setTimeout(() => {
+      if (!audioContext) return;
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.value = 1000;
+      osc2.type = 'sine';
+      gain2.gain.value = 0.3;
+      osc2.start(audioContext.currentTime);
+      osc2.stop(audioContext.currentTime + 0.15);
+    }, 170);
+    
+    console.log('🔊 Bildirim sesi çalındı!');
+  } catch (e) {
+    console.error('Ses hatası:', e);
+  }
+};
+
+const initAudioOnInteraction = () => {
+  if (isAudioInitialized) return;
+  
+  const enableAudio = () => {
+    try {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      isAudioEnabled = true;
+      isAudioInitialized = true;
+      localStorage.setItem('notificationSoundEnabled', 'true');
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+      console.log('🔔 Ses otomatik aktif edildi');
+    } catch (e) {
+      console.error('Ses aktif edilemedi:', e);
+    }
+  };
+  
+  if (localStorage.getItem('notificationSoundEnabled') === 'true') {
+    document.addEventListener('click', enableAudio, { once: true });
+    document.addEventListener('touchstart', enableAudio, { once: true });
+  }
+};
+
+export const enableNotificationSound = () => {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    isAudioEnabled = true;
+    isAudioInitialized = true;
+    localStorage.setItem('notificationSoundEnabled', 'true');
+    playNotificationSound();
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const useNotifications = (userId: string | undefined) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    initAudioOnInteraction();
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -50,49 +141,15 @@ export const useNotifications = (userId: string | undefined) => {
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
-          // Ses çal - Web Audio API ile
-          const playSound = async () => {
-            try {
-              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-              
-              // Gain node (ses seviyesi kontrolü)
-              const gainNode = audioContext.createGain();
-              gainNode.connect(audioContext.destination);
-              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-              
-              // İki tonlu bildirim sesi
-              // İlk ton (yüksek)
-              const oscillator1 = audioContext.createOscillator();
-              oscillator1.type = 'sine';
-              oscillator1.frequency.setValueAtTime(800, audioContext.currentTime);
-              oscillator1.connect(gainNode);
-              oscillator1.start(audioContext.currentTime);
-              oscillator1.stop(audioContext.currentTime + 0.1);
-              
-              // İkinci ton (düşük)
-              const oscillator2 = audioContext.createOscillator();
-              oscillator2.type = 'sine';
-              oscillator2.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-              oscillator2.connect(gainNode);
-              oscillator2.start(audioContext.currentTime + 0.1);
-              oscillator2.stop(audioContext.currentTime + 0.2);
-              
-              console.log('✅ Bildirim sesi çalındı');
-            } catch (e) {
-              console.log('❌ Ses çalınamadı:', e);
-            }
-          };
+          console.log('🔔 YENİ BİLDİRİM:', payload.new);
+          playNotificationSound();
           
-          playSound();
-          
-          // Toast göster
-          toast.info(`🔔 ${payload.new.title}`, {
-            description: payload.new.message,
+          toast.info(`🔔 ${(payload.new as any).title}`, {
+            description: (payload.new as any).message,
             duration: 5000,
           });
           
-          // State güncelle
-          setNotifications(prev => [payload.new, ...prev]);
+          setNotifications(prev => [payload.new as any, ...prev]);
           setUnreadCount(prev => prev + 1);
         }
       )

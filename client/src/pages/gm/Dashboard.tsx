@@ -311,24 +311,27 @@ export default function GMDashboard() {
         throw assignmentError;
       }
 
-      // 4. Bildirimleri oluştur
+      // 4. Bildirimleri oluştur - TYPE: 'task' OLMALI!
       const notifications = supervisors.map(supervisor => ({
         user_id: supervisor.id,
         title: 'Yeni Anlık Görev',
-        message: `${newTask.title}${newTask.description ? ' - ' + newTask.description : ''}`,
+        message: `"${newTask.title}" görevi size atandı.`,
+        type: 'task',  // ⚠️ 'task_assigned' DEĞİL, 'task' OLMALI!
         is_read: false
       }));
 
-      console.log('Creating notifications:', notifications);
+      console.log('📤 Bildirim gönderiliyor:', notifications);
 
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert(notifications);
 
       if (notificationError) {
-        console.error('Notification insert error:', notificationError);
+        console.error('❌ Bildirim hatası:', notificationError);
         // Bildirim hatası görev oluşturulmasını engellemez
         console.warn('Notifications could not be created, but task is created');
+      } else {
+        console.log('✅ Bildirim gönderildi!');
       }
 
       toast.success('Anlık görev başarıyla oluşturuldu!');
