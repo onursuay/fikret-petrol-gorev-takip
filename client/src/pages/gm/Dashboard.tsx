@@ -9,6 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, RotateCcw, FileSpreadsheet, Calendar, AlertTriangle, Upload, Download, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { NotificationBell } from '@/components/NotificationBell';
@@ -27,6 +31,21 @@ export default function GMDashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Yeni state'ler
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [parsedTasks, setParsedTasks] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
+  // Yeni görev form state'leri
+  const [newTask, setNewTask] = useState({
+    department: '',
+    title: '',
+    description: '',
+    requires_photo: false
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -127,6 +146,152 @@ export default function GMDashboard() {
     setResultFilter('all');
     setStartDate('');
     setEndDate('');
+  };
+
+  // Excel yükleme fonksiyonları
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadFile(file);
+    setUploading(true);
+
+    try {
+      const tasks = await parseTasksFromExcel(file);
+      setParsedTasks(tasks);
+      toast.success(`${tasks.length} görev başarıyla parse edildi`);
+    } catch (error: any) {
+      if (Array.isArray(error)) {
+        toast.error(`Hata: ${error.join(', ')}`);
+      } else {
+        toast.error('Excel dosyası okunamadı');
+      }
+      setUploadFile(null);
+      setParsedTasks([]);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUploadConfirm = async () => {
+    if (parsedTasks.length === 0) return;
+
+    setUploading(true);
+
+    try {
+      // 1. Mevcut is_custom=false görevleri sil
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('is_custom', false);
+
+      if (deleteError) throw deleteError;
+
+      // 2. Yeni görevleri ekle
+      const { error: insertError } = await supabase
+        .from('tasks')
+        .insert(parsedTasks);
+
+      if (insertError) throw insertError;
+
+      toast.success(`${parsedTasks.length} görev başarıyla yüklendi!`);
+      setShowUploadModal(false);
+      setUploadFile(null);
+      setParsedTasks([]);
+      fetchAssignments();
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Görevler yüklenirken hata oluştu');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Yeni görev ekleme fonksiyonları
+  const handleNewTaskSubmit = async () => {
+    if (!newTask.department || !newTask.title) {
+      toast.error('Birim ve görev başlığı zorunludur');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // 1. Task oluştur
+      const { data: task, error: taskError } = await supabase
+        .from('tasks')
+        .insert({
+          title: newTask.title,
+          description: newTask.description,
+          department: newTask.department,
+          frequency: 'once',
+          requires_photo: newTask.requires_photo,
+          is_custom: true,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (taskError) throw taskError;
+
+      // 2. İlgili supervisor'ları bul
+      const { data: supervisors, error: supervisorError } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('department', newTask.department)
+        .in('role', ['supervisor', 'shift_supervisor']);
+
+      if (supervisorError) throw supervisorError;
+
+      if (!supervisors || supervisors.length === 0) {
+        toast.error(`${newTask.department} biriminde yetkili bulunamadı`);
+        return;
+      }
+
+      // 3. Her supervisor için assignment oluştur
+      const today = new Date().toISOString().split('T')[0];
+      const assignments = supervisors.map(supervisor => ({
+        task_id: task.id,
+        assigned_to: supervisor.id,
+        assigned_date: today,
+        status: 'pending'
+      }));
+
+      const { error: assignmentError } = await supabase
+        .from('task_assignments')
+        .insert(assignments);
+
+      if (assignmentError) throw assignmentError;
+
+      // 4. Bildirimleri oluştur
+      const notifications = supervisors.map(supervisor => ({
+        user_id: supervisor.id,
+        title: 'Yeni Anlık Görev',
+        message: `${newTask.title} - ${newTask.description || 'Açıklama yok'}`,
+        is_read: false
+      }));
+
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      if (notificationError) throw notificationError;
+
+      toast.success('Anlık görev başarıyla oluşturuldu!');
+      setShowNewTaskModal(false);
+      setNewTask({
+        department: '',
+        title: '',
+        description: '',
+        requires_photo: false
+      });
+      fetchAssignments();
+    } catch (error) {
+      console.error('New task error:', error);
+      toast.error('Görev oluşturulurken hata oluştu');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const exportToExcel = () => {
@@ -243,14 +408,46 @@ export default function GMDashboard() {
             <Link href="/">
               <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center flex-wrap">
+              {/* Yeni özellik butonları */}
+              <Button 
+                onClick={() => setShowUploadModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Görev Listesi Yükle
+              </Button>
+              
+              <Button 
+                onClick={exportToExcel}
+                disabled={isExporting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Rapor İndir
+              </Button>
+              
+              <Button 
+                onClick={() => setShowNewTaskModal(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Yeni Görev
+              </Button>
+              
               <NotificationBell userId={user?.id} />
+              
               <Link href="/gm/users">
                 <Button variant="outline">
                   <Users className="w-4 h-4 mr-2" />
                   Kullanıcılar
                 </Button>
               </Link>
+              
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Çıkış
@@ -611,6 +808,175 @@ export default function GMDashboard() {
           )}
         </div>
       </main>
+
+      {/* Görev Listesi Yükleme Modal */}
+      <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>📤 Görev Listesi Yükle</DialogTitle>
+            <DialogDescription>
+              Excel dosyasından görev listesi yükleyin. Mevcut görevler (anlık görevler hariç) silinecektir.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="excel-upload"
+                disabled={uploading}
+              />
+              <label 
+                htmlFor="excel-upload" 
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Upload className="w-12 h-12 text-gray-400" />
+                <span className="text-sm font-medium">
+                  {uploadFile ? uploadFile.name : 'Excel dosyası seçin (.xlsx)'}
+                </span>
+                <span className="text-xs text-gray-500">
+                  Kolonlar: PERİYOT, BİRİM, GÖREV, AÇIKLAMA, BELGE
+                </span>
+              </label>
+            </div>
+
+            {parsedTasks.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded p-4">
+                <p className="text-sm font-medium text-green-800">
+                  ✓ {parsedTasks.length} görev başarıyla parse edildi
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {parsedTasks.filter(t => t.requires_photo).length} görev belge gerektiriyor
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowUploadModal(false);
+                setUploadFile(null);
+                setParsedTasks([]);
+              }}
+              disabled={uploading}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleUploadConfirm}
+              disabled={parsedTasks.length === 0 || uploading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Yükleniyor...
+                </>
+              ) : (
+                <>Yükle ({parsedTasks.length} görev)</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Yeni Görev (Anlık Görev) Modal */}
+      <Dialog open={showNewTaskModal} onOpenChange={setShowNewTaskModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>➕ Yeni Anlık Görev</DialogTitle>
+            <DialogDescription>
+              Seçilen birime anlık görev oluşturun
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="department">Birim *</Label>
+              <Select 
+                value={newTask.department} 
+                onValueChange={(value) => setNewTask({...newTask, department: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Birim seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="istasyon">İstasyon</SelectItem>
+                  <SelectItem value="muhasebe">Muhasebe</SelectItem>
+                  <SelectItem value="vardiya">Vardiya</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Görev Başlığı *</Label>
+              <Input
+                id="title"
+                placeholder="Görev başlığını girin"
+                value={newTask.title}
+                onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Açıklama</Label>
+              <Textarea
+                id="description"
+                placeholder="Görev açıklaması (opsiyonel)"
+                value={newTask.description}
+                onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="requires_photo">Belge Zorunlu mu?</Label>
+              <Switch
+                id="requires_photo"
+                checked={newTask.requires_photo}
+                onCheckedChange={(checked) => setNewTask({...newTask, requires_photo: checked})}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowNewTaskModal(false);
+                setNewTask({
+                  department: '',
+                  title: '',
+                  description: '',
+                  requires_photo: false
+                });
+              }}
+              disabled={uploading}
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleNewTaskSubmit}
+              disabled={!newTask.department || !newTask.title || uploading}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Oluşturuluyor...
+                </>
+              ) : (
+                <>Oluştur</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
