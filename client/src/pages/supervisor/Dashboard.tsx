@@ -60,6 +60,7 @@ export default function SupervisorDashboard() {
           )
         `)
         .eq('assigned_to', user.id)
+        .order('created_at', { ascending: false })
         .order('assigned_date', { ascending: false });
 
       if (error) throw error;
@@ -139,24 +140,7 @@ export default function SupervisorDashboard() {
       return matchesSearch && matchesTab && matchesStatus && matchesResult && matchesStartDate && matchesEndDate;
     });
 
-    // Sıralama: Yapılmamış görevler en üstte
-    return filtered.sort((a, b) => {
-      const priorityOrder: Record<string, number> = {
-        'pending': 1,
-        'forwarded': 1,
-        'in_progress': 1,
-        'rejected': 1,
-        'submitted': 2,
-        'completed': 3
-      };
-      const priorityA = priorityOrder[a.status] || 2;
-      const priorityB = priorityOrder[b.status] || 2;
-      
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-      return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
-    });
+    return filtered;
   }, [assignments, searchTerm, activeTab, statusFilter, resultFilter, startDate, endDate]);
 
   const clearFilters = () => {

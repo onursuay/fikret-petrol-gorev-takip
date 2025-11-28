@@ -56,6 +56,7 @@ export default function StaffDashboard() {
           )
         `)
         .eq('forwarded_to', user.id)
+        .order('created_at', { ascending: false })
         .order('assigned_date', { ascending: false });
 
       if (error) throw error;
@@ -102,26 +103,6 @@ export default function StaffDashboard() {
     );
   };
 
-  // Görevleri sırala: Yapılmamış görevler en üstte
-  const sortedAssignments = [...assignments].sort((a, b) => {
-    // Öncelik sırası: forwarded, rejected, in_progress > submitted > completed
-    const priorityOrder: Record<string, number> = {
-      'forwarded': 1,
-      'rejected': 1,
-      'in_progress': 1,
-      'pending': 1,
-      'submitted': 2,
-      'completed': 3
-    };
-    const priorityA = priorityOrder[a.status] || 2;
-    const priorityB = priorityOrder[b.status] || 2;
-    
-    if (priorityA !== priorityB) {
-      return priorityA - priorityB;
-    }
-    // Aynı öncelik ise tarihe göre sırala (en yeni önce)
-    return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
-  });
 
   if (authLoading || loading) {
     return (
@@ -156,7 +137,7 @@ export default function StaffDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {sortedAssignments.length === 0 ? (
+        {assignments.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Clock className="w-12 h-12 text-muted-foreground mb-4" />
@@ -165,7 +146,7 @@ export default function StaffDashboard() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {sortedAssignments.map((assignment) => (
+            {assignments.map((assignment) => (
               <Card key={assignment.id} className="hover:border-primary transition-colors">
                 <CardHeader>
                   <div className="flex justify-between items-start">

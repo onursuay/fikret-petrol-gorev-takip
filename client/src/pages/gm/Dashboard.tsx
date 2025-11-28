@@ -71,6 +71,7 @@ export default function GMDashboard() {
           supervisor:users!task_assignments_assigned_to_fkey(full_name),
           staff:users!task_assignments_forwarded_to_fkey(full_name)
         `)
+        .order('created_at', { ascending: false })
         .order('assigned_date', { ascending: false });
 
       if (error) throw error;
@@ -121,23 +122,6 @@ export default function GMDashboard() {
     if (endDate && assignment.assigned_date > endDate) return false;
 
     return true;
-  }).sort((a, b) => {
-    // Sıralama: Yapılmamış görevler en üstte
-    const priorityOrder: Record<string, number> = {
-      'pending': 1,
-      'forwarded': 1,
-      'in_progress': 1,
-      'rejected': 1,
-      'submitted': 2,
-      'completed': 3
-    };
-    const priorityA = priorityOrder[a.status] || 2;
-    const priorityB = priorityOrder[b.status] || 2;
-    
-    if (priorityA !== priorityB) {
-      return priorityA - priorityB;
-    }
-    return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
   });
 
   const clearFilters = () => {
