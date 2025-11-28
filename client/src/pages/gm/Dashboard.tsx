@@ -517,52 +517,13 @@ export default function GMDashboard() {
           </Card>
         </div>
 
-        <Card className="mb-6 overflow-visible relative">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 overflow-visible relative">
-            {/* Arama Overlay - Filtrelerin ALTINDA */}
-            {showSearchInput && (
-              <div className="absolute top-0 left-0 right-0 bottom-0 z-50 bg-card/95 backdrop-blur-sm rounded-lg flex items-end p-6 shadow-2xl">
-                <div className="w-full flex items-center gap-3 bg-background/80 backdrop-blur-md border rounded-lg p-4 shadow-lg">
-                  <Search className="w-5 h-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Ara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1 text-base border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
-                    autoFocus
-                    onBlur={(e) => {
-                      if (!e.relatedTarget?.closest('.search-close-btn')) {
-                        !searchTerm && setShowSearchInput(false);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setSearchTerm('');
-                        setShowSearchInput(false);
-                      }
-                    }}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="search-close-btn h-8 w-8"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setSearchTerm('');
-                      setShowSearchInput(false);
-                    }}
-                  >
-                    ✕
-                  </Button>
-                </div>
-              </div>
-            )}
-
+          <CardContent className="flex flex-col gap-4">
             {/* Desktop Layout */}
-            <div className="hidden md:flex items-center justify-between gap-3 flex-wrap relative">
+            <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
               
               {/* Sol Taraf: Filtreler */}
               <div className="flex items-center gap-2">
@@ -570,7 +531,7 @@ export default function GMDashboard() {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setShowSearchInput(true)}
+                  onClick={() => setShowSearchInput(!showSearchInput)}
                   className="w-10 h-10"
                 >
                   <Search className="w-4 h-4" />
@@ -679,6 +640,37 @@ export default function GMDashboard() {
                 </Button>
               </div>
             </div>
+
+            {/* Satır 2: Arama Kutusu - SADECE showSearchInput TRUE İSE GÖRÜNÜR */}
+            {showSearchInput && (
+              <div className="hidden md:flex items-center gap-3 w-full bg-muted border rounded-lg p-4 shadow-sm">
+                <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <Input
+                  placeholder="Ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent text-base"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setSearchTerm('');
+                      setShowSearchInput(false);
+                    }
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="search-close-btn h-8 w-8 flex-shrink-0"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setShowSearchInput(false);
+                  }}
+                >
+                  ✕
+                </Button>
+              </div>
+            )}
 
             {/* Mobile Layout */}
             <div className="md:hidden space-y-3">
