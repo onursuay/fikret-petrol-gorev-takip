@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import "./dashboard.css";
+import { NotificationBell } from '@/components/NotificationBell';
 
 export default function SupervisorDashboard() {
   const [, setLocation] = useLocation();
@@ -101,7 +102,7 @@ export default function SupervisorDashboard() {
   };
 
   const getFilteredAssignments = useCallback(() => {
-    return assignments.filter(assignment => {
+    const filtered = assignments.filter(assignment => {
       // Personel adı veya görev adı araması
       const matchesSearch = searchTerm === '' || 
         assignment.staff?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,6 +138,25 @@ export default function SupervisorDashboard() {
 
       return matchesSearch && matchesTab && matchesStatus && matchesResult && matchesStartDate && matchesEndDate;
     });
+
+    // Sıralama: Yapılmamış görevler en üstte
+    return filtered.sort((a, b) => {
+      const priorityOrder: Record<string, number> = {
+        'pending': 1,
+        'forwarded': 1,
+        'in_progress': 1,
+        'rejected': 1,
+        'submitted': 2,
+        'completed': 3
+      };
+      const priorityA = priorityOrder[a.status] || 2;
+      const priorityB = priorityOrder[b.status] || 2;
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
+    });
   }, [assignments, searchTerm, activeTab, statusFilter, resultFilter, startDate, endDate]);
 
   const clearFilters = () => {
@@ -169,7 +189,8 @@ export default function SupervisorDashboard() {
             <Link href="/">
               <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <NotificationBell userId={user?.id} />
               <Link href="/supervisor/staff">
                 <Button variant="outline">
                   <Users className="w-4 h-4 mr-2" />

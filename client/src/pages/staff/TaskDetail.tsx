@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload, { UploadedFile, FileViewer } from '@/components/FileUpload';
+import { useIsMobile } from '@/hooks/useMobile';
 
 interface TaskDetailProps {
   taskId: string;
@@ -23,6 +24,7 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
   const [submitting, setSubmitting] = useState(false);
   const [notes, setNotes] = useState('');
   const [attachments, setAttachments] = useState<UploadedFile[]>([]);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -190,7 +192,7 @@ export default function StaffTaskDetail({ taskId }: TaskDetailProps) {
                   onFilesChange={handleFilesChange}
                   disabled={!canEdit}
                   maxFiles={5}
-                  showCamera={true}
+                  showCamera={isMobile}
                 />
               ) : (
                 <FileViewer files={attachments} />

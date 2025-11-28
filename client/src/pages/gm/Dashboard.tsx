@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, RotateCcw, FileSpreadsheet, Calendar, AlertTriangle } from 'lucide-react';
+import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, RotateCcw, FileSpreadsheet, Calendar, AlertTriangle, Upload, Download, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { NotificationBell } from '@/components/NotificationBell';
+import { parseTasksFromExcel, getDelayBadge } from '@/utils/excelUtils';
 
 export default function GMDashboard() {
   const [, setLocation] = useLocation();
@@ -100,6 +102,23 @@ export default function GMDashboard() {
     if (endDate && assignment.assigned_date > endDate) return false;
 
     return true;
+  }).sort((a, b) => {
+    // Sıralama: Yapılmamış görevler en üstte
+    const priorityOrder: Record<string, number> = {
+      'pending': 1,
+      'forwarded': 1,
+      'in_progress': 1,
+      'rejected': 1,
+      'submitted': 2,
+      'completed': 3
+    };
+    const priorityA = priorityOrder[a.status] || 2;
+    const priorityB = priorityOrder[b.status] || 2;
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
   });
 
   const clearFilters = () => {
@@ -224,7 +243,8 @@ export default function GMDashboard() {
             <Link href="/">
               <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <NotificationBell userId={user?.id} />
               <Link href="/gm/users">
                 <Button variant="outline">
                   <Users className="w-4 h-4 mr-2" />

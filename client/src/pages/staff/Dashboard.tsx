@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, LogOut, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface TaskAssignment {
   id: string;
@@ -101,6 +102,27 @@ export default function StaffDashboard() {
     );
   };
 
+  // Görevleri sırala: Yapılmamış görevler en üstte
+  const sortedAssignments = [...assignments].sort((a, b) => {
+    // Öncelik sırası: forwarded, rejected, in_progress > submitted > completed
+    const priorityOrder: Record<string, number> = {
+      'forwarded': 1,
+      'rejected': 1,
+      'in_progress': 1,
+      'pending': 1,
+      'submitted': 2,
+      'completed': 3
+    };
+    const priorityA = priorityOrder[a.status] || 2;
+    const priorityB = priorityOrder[b.status] || 2;
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    // Aynı öncelik ise tarihe göre sırala (en yeni önce)
+    return new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime();
+  });
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -123,15 +145,18 @@ export default function StaffDashboard() {
               <img src="/fikret-petrol-logo.png" alt="Fikret Petrol" className="h-16 cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Çıkış
-          </Button>
+          <div className="flex gap-2 items-center">
+            <NotificationBell userId={user?.id} />
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Çıkış
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {assignments.length === 0 ? (
+        {sortedAssignments.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Clock className="w-12 h-12 text-muted-foreground mb-4" />
@@ -140,7 +165,7 @@ export default function StaffDashboard() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {assignments.map((assignment) => (
+            {sortedAssignments.map((assignment) => (
               <Card key={assignment.id} className="hover:border-primary transition-colors">
                 <CardHeader>
                   <div className="flex justify-between items-start">
