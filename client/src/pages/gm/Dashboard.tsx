@@ -85,9 +85,7 @@ export default function GMDashboard() {
 
       setAssignments(data || []);
 
-      const today = new Date().toISOString().split('T')[0];
-      const todayAssignments = data?.filter(a => a.assigned_date === today) || [];
-      const total = todayAssignments.length;
+      const total = data?.length || 0;
       const positive = data?.filter(a => a.result === 'olumlu').length || 0;
       const negative = data?.filter(a => a.result === 'olumsuz').length || 0;
       const pending = data?.filter(a => a.status === 'pending' || a.status === 'forwarded' || a.status === 'submitted').length || 0;
@@ -256,7 +254,7 @@ export default function GMDashboard() {
         .from('tasks')
         .insert({
           title: newTask.title,
-          description: newTask.description,
+          description: newTask.description || '',
           department: newTask.department,
           frequency: 'once',
           requires_photo: newTask.requires_photo,
@@ -266,7 +264,12 @@ export default function GMDashboard() {
         .select()
         .single();
 
-      if (taskError) throw taskError;
+      if (taskError) {
+        console.error('Task insert error:', taskError);
+        throw taskError;
+      }
+
+      console.log('Task created:', task);
 
       // 2. İlgili supervisor'ları bul
       const { data: supervisors, error: supervisorError } = await supabase
@@ -275,10 +278,16 @@ export default function GMDashboard() {
         .eq('department', newTask.department)
         .in('role', ['supervisor', 'shift_supervisor']);
 
-      if (supervisorError) throw supervisorError;
+      if (supervisorError) {
+        console.error('Supervisor query error:', supervisorError);
+        throw supervisorError;
+      }
+
+      console.log('Found supervisors:', supervisors);
 
       if (!supervisors || supervisors.length === 0) {
         toast.error(`${newTask.department} biriminde yetkili bulunamadı`);
+        setUploading(false);
         return;
       }
 
@@ -291,25 +300,36 @@ export default function GMDashboard() {
         status: 'pending'
       }));
 
+      console.log('Creating assignments:', assignments);
+
       const { error: assignmentError } = await supabase
         .from('task_assignments')
         .insert(assignments);
 
-      if (assignmentError) throw assignmentError;
+      if (assignmentError) {
+        console.error('Assignment insert error:', assignmentError);
+        throw assignmentError;
+      }
 
       // 4. Bildirimleri oluştur
       const notifications = supervisors.map(supervisor => ({
         user_id: supervisor.id,
         title: 'Yeni Anlık Görev',
-        message: `${newTask.title} - ${newTask.description || 'Açıklama yok'}`,
+        message: `${newTask.title}${newTask.description ? ' - ' + newTask.description : ''}`,
         is_read: false
       }));
+
+      console.log('Creating notifications:', notifications);
 
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert(notifications);
 
-      if (notificationError) throw notificationError;
+      if (notificationError) {
+        console.error('Notification insert error:', notificationError);
+        // Bildirim hatası görev oluşturulmasını engellemez
+        console.warn('Notifications could not be created, but task is created');
+      }
 
       toast.success('Anlık görev başarıyla oluşturuldu!');
       setShowNewTaskModal(false);
@@ -320,9 +340,9 @@ export default function GMDashboard() {
         requires_photo: false
       });
       fetchAssignments();
-    } catch (error) {
+    } catch (error: any) {
       console.error('New task error:', error);
-      toast.error('Görev oluşturulurken hata oluştu');
+      toast.error(`Görev oluşturulurken hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
     } finally {
       setUploading(false);
     }
@@ -465,7 +485,7 @@ export default function GMDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Görev (Bugün)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Görev</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total}</div>
@@ -497,51 +517,64 @@ export default function GMDashboard() {
           </Card>
         </div>
 
-        <Card className="mb-6">
+        <Card className="mb-6 overflow-visible relative">
           <CardHeader>
             <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 overflow-hidden">
+          <CardContent className="space-y-3 overflow-visible relative">
+            {/* Arama Overlay - Filtrelerin ALTINDA */}
+            {showSearchInput && (
+              <div className="absolute top-0 left-0 right-0 bottom-0 z-50 bg-card/95 backdrop-blur-sm rounded-lg flex items-end p-6 shadow-2xl">
+                <div className="w-full flex items-center gap-3 bg-background/80 backdrop-blur-md border rounded-lg p-4 shadow-lg">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 text-base border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                    autoFocus
+                    onBlur={(e) => {
+                      if (!e.relatedTarget?.closest('.search-close-btn')) {
+                        !searchTerm && setShowSearchInput(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setSearchTerm('');
+                        setShowSearchInput(false);
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="search-close-btn h-8 w-8"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSearchTerm('');
+                      setShowSearchInput(false);
+                    }}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Desktop Layout */}
-            <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
+            <div className="hidden md:flex items-center justify-between gap-3 flex-wrap relative">
+              
               {/* Sol Taraf: Filtreler */}
               <div className="flex items-center gap-2">
-                {/* Arama İkonu/Input */}
-                <div className="relative">
-                  {!showSearchInput ? (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowSearchInput(true)}
-                      className="w-10 h-10"
-                    >
-                      <Search className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        placeholder="Ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-64"
-                        autoFocus
-                        onBlur={() => !searchTerm && setShowSearchInput(false)}
-                      />
-                      {searchTerm && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSearchTerm('');
-                            setShowSearchInput(false);
-                          }}
-                        >
-                          ✕
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Arama İkonu */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowSearchInput(true)}
+                  className="w-10 h-10"
+                >
+                  <Search className="w-4 h-4" />
+                </Button>
 
                 {/* Birim Tabs */}
                 <Tabs value={filter} onValueChange={setFilter}>
