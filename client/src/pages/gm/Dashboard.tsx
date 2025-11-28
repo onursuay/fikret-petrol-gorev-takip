@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { NotificationBell } from '@/components/NotificationBell';
+import { NotificationPermission } from '@/components/NotificationPermission';
 import { parseTasksFromExcel, getDelayBadge } from '@/utils/excelUtils';
 
 export default function GMDashboard() {
@@ -453,8 +454,10 @@ export default function GMDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
+    <>
+      <NotificationPermission />
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}
         <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 -translate-y-1/2 w-64 h-[2px] bg-gradient-to-r from-transparent via-white/90 to-transparent blur-sm animate-light-sweep" />
@@ -1123,6 +1126,7 @@ export default function GMDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }
