@@ -10,12 +10,27 @@ export const useNotifications = (userId: string | undefined) => {
     if (!userId) return;
 
     const fetchNotifications = async () => {
+      // 7 günden eski okunmamış bildirimleri otomatik temizle
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .lt('created_at', sevenDaysAgo.toISOString());
+
+      // Güncel bildirimleri çek
       const { data } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', userId)
         .eq('is_read', false)
         .order('created_at', { ascending: false });
+      
+      console.log('📬 Okunmamış bildirimler:', data);
+      console.log('📊 Bildirim sayısı:', data?.length || 0);
       
       setNotifications(data || []);
       setUnreadCount(data?.length || 0);
@@ -35,24 +50,36 @@ export const useNotifications = (userId: string | undefined) => {
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
-          // Ses çal - birden fazla yöntem dene
-          const playSound = () => {
+          // Ses çal - Web Audio API ile
+          const playSound = async () => {
             try {
-              // Yöntem 1: Audio API
-              const audio = new Audio('/notification.mp3');
-              audio.volume = 1.0;
-              audio.play().catch(() => {
-                // Yöntem 2: Web Audio API
-                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.connect(audioContext.destination);
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2);
-              });
+              const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+              
+              // Gain node (ses seviyesi kontrolü)
+              const gainNode = audioContext.createGain();
+              gainNode.connect(audioContext.destination);
+              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+              
+              // İki tonlu bildirim sesi
+              // İlk ton (yüksek)
+              const oscillator1 = audioContext.createOscillator();
+              oscillator1.type = 'sine';
+              oscillator1.frequency.setValueAtTime(800, audioContext.currentTime);
+              oscillator1.connect(gainNode);
+              oscillator1.start(audioContext.currentTime);
+              oscillator1.stop(audioContext.currentTime + 0.1);
+              
+              // İkinci ton (düşük)
+              const oscillator2 = audioContext.createOscillator();
+              oscillator2.type = 'sine';
+              oscillator2.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+              oscillator2.connect(gainNode);
+              oscillator2.start(audioContext.currentTime + 0.1);
+              oscillator2.stop(audioContext.currentTime + 0.2);
+              
+              console.log('✅ Bildirim sesi çalındı');
             } catch (e) {
-              console.log('Ses çalınamadı:', e);
+              console.log('❌ Ses çalınamadı:', e);
             }
           };
           

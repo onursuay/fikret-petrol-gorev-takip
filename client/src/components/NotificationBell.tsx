@@ -22,9 +22,24 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+
+  // Dropdown pozisyonunu hesapla
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, [open]);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button 
+        ref={buttonRef}
         onClick={() => setOpen(!open)} 
         className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
       >
@@ -37,7 +52,13 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
+        <div 
+          className="fixed w-80 bg-white rounded-lg shadow-2xl border z-[9999]"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            right: `${dropdownPosition.right}px`,
+          }}
+        >
           <div className="p-3 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
             <span className="font-semibold text-gray-800">Bildirimler</span>
             {unreadCount > 0 && (

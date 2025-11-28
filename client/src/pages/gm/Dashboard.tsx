@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, RotateCcw, FileSpreadsheet, Calendar, AlertTriangle, Upload, Download, Plus } from 'lucide-react';
+import { Loader2, LogOut, Users, CheckCircle2, XCircle, Clock, Search, FileSpreadsheet, Calendar, AlertTriangle, Upload, Download, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';

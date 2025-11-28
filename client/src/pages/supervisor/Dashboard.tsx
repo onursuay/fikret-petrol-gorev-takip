@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, RotateCcw } from 'lucide-react';
+import { Loader2, LogOut, Users, ClipboardList, CheckCircle2, XCircle, Clock, Send, Search, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import "./dashboard.css";
 import { NotificationBell } from '@/components/NotificationBell';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function SupervisorDashboard() {
   const [, setLocation] = useLocation();
@@ -25,6 +26,12 @@ export default function SupervisorDashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [activeTab, setActiveTab] = useState<string>('all');
+  
+  // Tarih modal state'leri
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [dateStep, setDateStep] = useState<'start' | 'end'>('start');
+  const [tempStartDate, setTempStartDate] = useState('');
+  const [tempEndDate, setTempEndDate] = useState('');
 
 
   useEffect(() => {
@@ -86,6 +93,49 @@ export default function SupervisorDashboard() {
   const handleLogout = async () => {
     await signOut();
     setLocation('/');
+  };
+
+  // Tarih seçimi fonksiyonları
+  const handleDateModalOpen = () => {
+    setShowDateModal(true);
+    setDateStep('start');
+    setTempStartDate('');
+    setTempEndDate('');
+  };
+
+  const handleStartDateNext = () => {
+    if (tempStartDate) {
+      setDateStep('end');
+    } else {
+      toast.error('Lütfen başlangıç tarihi seçin');
+    }
+  };
+
+  const handleEndDateApply = () => {
+    if (!tempStartDate || !tempEndDate) {
+      toast.error('Lütfen her iki tarihi de seçin');
+      return;
+    }
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setShowDateModal(false);
+    toast.success('Tarih aralığı uygulandı');
+  };
+
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+    toast.info('Tarih filtresi temizlendi');
+  };
+
+  // Tarih aralığını formatla
+  const formatDateRange = () => {
+    if (startDate && endDate) {
+      const start = new Date(startDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+      const end = new Date(endDate).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+      return `${start} - ${end}`;
+    }
+    return 'Tarih Seç';
   };
 
   const getStatusBadge = (status: string) => {
@@ -291,10 +341,10 @@ export default function SupervisorDashboard() {
           <CardHeader className="pb-2">
             <CardTitle>Filtrele ve Ara</CardTitle>
           </CardHeader>
-          <CardContent>
-            {/* Desktop Filtre Satırı - Örnek 1 gibi */}
-            <div className="hidden md:grid grid-cols-[1fr_140px_140px_120px_120px_40px_70px] gap-3 items-center">
-              <div className="relative">
+          <CardContent className="space-y-2">
+            {/* Desktop Filtre Satırı */}
+            <div className="hidden md:flex items-center gap-2">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Ara..."
@@ -318,7 +368,7 @@ export default function SupervisorDashboard() {
               </Select>
 
               <Select value={resultFilter} onValueChange={setResultFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Tüm Sonuç" />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,35 +378,30 @@ export default function SupervisorDashboard() {
                 </SelectContent>
               </Select>
 
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-[120px]"
-              />
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-[120px]"
-              />
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={clearFilters}
-                title="Filtreleri Temizle"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-
-              <span className="text-sm text-muted-foreground whitespace-nowrap text-right">
-                {getFilteredAssignments().length} görev
-              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  onClick={handleDateModalOpen}
+                  className="gap-1"
+                >
+                  <Calendar className="w-4 h-4" />
+                  {formatDateRange()}
+                </Button>
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={clearDateFilter}
+                    className="h-8 w-8"
+                  >
+                    ✕
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Mobile Filtre Alanı */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -393,34 +438,14 @@ export default function SupervisorDashboard() {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  placeholder="gg.aa.yyyy"
-                />
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  placeholder="gg.aa.yyyy"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={clearFilters}
-                  title="Filtreleri Temizle"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {getFilteredAssignments().length} görev
-                </span>
-              </div>
+              <Button
+                variant="outline"
+                onClick={handleDateModalOpen}
+                className="w-full"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                {formatDateRange()}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -500,6 +525,66 @@ export default function SupervisorDashboard() {
           )}
         </div>
       </main>
+
+      {/* Tarih Seçimi Modal */}
+      <Dialog open={showDateModal} onOpenChange={setShowDateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {dateStep === 'start' ? '📅 Başlangıç Tarihi Seçin' : '📅 Bitiş Tarihi Seçin'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {dateStep === 'start' ? (
+              <>
+                <Input
+                  type="date"
+                  value={tempStartDate}
+                  onChange={(e) => setTempStartDate(e.target.value)}
+                  className="w-full"
+                />
+                <Button 
+                  onClick={handleStartDateNext}
+                  disabled={!tempStartDate}
+                  className="w-full"
+                >
+                  İleri →
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Başlangıç: {new Date(tempStartDate).toLocaleDateString('tr-TR')}
+                </div>
+                <Input
+                  type="date"
+                  min={tempStartDate}
+                  value={tempEndDate}
+                  onChange={(e) => setTempEndDate(e.target.value)}
+                  className="w-full"
+                />
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setDateStep('start')}
+                    className="flex-1"
+                  >
+                    ← Geri
+                  </Button>
+                  <Button 
+                    onClick={handleEndDateApply}
+                    disabled={!tempEndDate}
+                    className="flex-1"
+                  >
+                    Uygula
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
