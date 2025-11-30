@@ -16,7 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { NotificationBell } from '@/components/NotificationBell';
-import { NotificationPermission } from '@/components/NotificationPermission';
+import { PushNotificationPermission } from '@/components/PushNotificationPermission';
 import { parseTasksFromExcel, getDelayBadge } from '@/utils/excelUtils';
 
 export default function GMDashboard() {
@@ -455,7 +455,7 @@ export default function GMDashboard() {
 
   return (
     <>
-      <NotificationPermission />
+      <PushNotificationPermission />
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}

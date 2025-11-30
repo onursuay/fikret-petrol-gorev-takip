@@ -142,14 +142,37 @@ export const useNotifications = (userId: string | undefined) => {
         },
         (payload) => {
           console.log('🔔 YENİ BİLDİRİM:', payload.new);
+          
+          const notificationData = payload.new as any;
+          
+          // Ses çal
           playNotificationSound();
           
-          toast.info(`🔔 ${(payload.new as any).title}`, {
-            description: (payload.new as any).message,
+          // Toast göster
+          toast.info(`🔔 ${notificationData.title}`, {
+            description: notificationData.message,
             duration: 5000,
           });
           
-          setNotifications(prev => [payload.new as any, ...prev]);
+          // Push Notification gönder (sayfa arka plandaysa veya kapalıysa)
+          if ('Notification' in window && Notification.permission === 'granted') {
+            // Eğer sayfa arka plandaysa veya hidden ise
+            if (document.hidden) {
+              console.log('📢 Push Notification gönderiliyor (sayfa arka planda)');
+              new Notification(notificationData.title || '🔔 Yeni Görev', {
+                body: notificationData.message || 'Yeni bir görev atandı',
+                icon: '/fikret-petrol-logo.png',
+                badge: '/fikret-petrol-logo.png',
+                tag: 'task-notification',
+                requireInteraction: false,
+                silent: false
+              });
+            } else {
+              console.log('👀 Sayfa aktif - sadece toast gösteriliyor');
+            }
+          }
+          
+          setNotifications(prev => [notificationData, ...prev]);
           setUnreadCount(prev => prev + 1);
         }
       )

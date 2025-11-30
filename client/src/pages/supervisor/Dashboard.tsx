@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import "./dashboard.css";
 import { NotificationBell } from '@/components/NotificationBell';
-import { NotificationPermission } from '@/components/NotificationPermission';
+import { PushNotificationPermission } from '@/components/PushNotificationPermission';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function SupervisorDashboard() {
@@ -213,7 +213,7 @@ export default function SupervisorDashboard() {
 
   return (
     <>
-      <NotificationPermission />
+      <PushNotificationPermission />
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}

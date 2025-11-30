@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, LogOut, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { NotificationBell } from '@/components/NotificationBell';
-import { NotificationPermission } from '@/components/NotificationPermission';
+import { PushNotificationPermission } from '@/components/PushNotificationPermission';
 
 interface TaskAssignment {
   id: string;
@@ -115,7 +115,7 @@ export default function StaffDashboard() {
 
   return (
     <>
-      <NotificationPermission />
+      <PushNotificationPermission />
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}
