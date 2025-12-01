@@ -23,7 +23,8 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    host: true,
+    host: '0.0.0.0',
+    port: 5174,
     allowedHosts: [
       ".manuspre.computer",
       ".manus.computer",

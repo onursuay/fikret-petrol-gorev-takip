@@ -1,192 +1,197 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-let audioContext: AudioContext | null = null;
-let isAudioEnabled = false;
-let isAudioInitialized = false;
+// Global audio element - sayfa boyunca aynı kalır
+let globalAudio: HTMLAudioElement | null = null;
+let isAudioUnlocked = false;
 
-const playNotificationSound = () => {
-  if (!isAudioEnabled || !audioContext) return;
-  
-  try {
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-    
-    const osc1 = audioContext.createOscillator();
-    const gain1 = audioContext.createGain();
-    osc1.connect(gain1);
-    gain1.connect(audioContext.destination);
-    osc1.frequency.value = 800;
-    osc1.type = 'sine';
-    gain1.gain.value = 0.3;
-    osc1.start(audioContext.currentTime);
-    osc1.stop(audioContext.currentTime + 0.15);
-    
-    setTimeout(() => {
-      if (!audioContext) return;
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-      osc2.frequency.value = 1000;
-      osc2.type = 'sine';
-      gain2.gain.value = 0.3;
-      osc2.start(audioContext.currentTime);
-      osc2.stop(audioContext.currentTime + 0.15);
-    }, 170);
-    
-    console.log('🔊 Bildirim sesi çalındı!');
-  } catch (e) {
-    console.error('Ses hatası:', e);
+// Sesi başlat (bir kez çağrılır)
+const initAudio = () => {
+  if (!globalAudio) {
+    globalAudio = new Audio('/notification.mp3');
+    globalAudio.volume = 1.0;
+    globalAudio.load();
   }
 };
 
-const initAudioOnInteraction = () => {
-  if (isAudioInitialized) return;
+// Sesi çal
+const playNotificationSound = () => {
+  if (!globalAudio || !isAudioUnlocked) {
+    console.log('🔇 Ses henüz aktif değil');
+    return;
+  }
   
-  const enableAudio = () => {
-    try {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-      isAudioEnabled = true;
-      isAudioInitialized = true;
-      localStorage.setItem('notificationSoundEnabled', 'true');
-      document.removeEventListener('click', enableAudio);
-      document.removeEventListener('touchstart', enableAudio);
-      console.log('🔔 Ses otomatik aktif edildi');
-    } catch (e) {
-      console.error('Ses aktif edilemedi:', e);
-    }
+  globalAudio.currentTime = 0;
+  globalAudio.play()
+    .then(() => console.log('🔊 Ses çalındı!'))
+    .catch(err => console.log('Ses hatası:', err));
+};
+
+// Kullanıcı etkileşiminde sesi aç
+const unlockAudio = () => {
+  if (isAudioUnlocked) return;
+  
+  initAudio();
+  if (globalAudio) {
+    // Sessiz çal ve durdur - bu tarayıcı kilidini açar
+    globalAudio.volume = 0;
+    globalAudio.play()
+      .then(() => {
+        globalAudio!.pause();
+        globalAudio!.currentTime = 0;
+        globalAudio!.volume = 1.0;
+        isAudioUnlocked = true;
+        console.log('✅ Ses sistemi aktif');
+      })
+      .catch(() => {});
+  }
+};
+
+// Document click listener - bir kez ekle
+if (typeof window !== 'undefined') {
+  const handleFirstInteraction = () => {
+    unlockAudio();
+    // Listener'ı kaldırma - her tıklamada kontrol et
   };
   
-  if (localStorage.getItem('notificationSoundEnabled') === 'true') {
-    document.addEventListener('click', enableAudio, { once: true });
-    document.addEventListener('touchstart', enableAudio, { once: true });
-  }
-};
-
-export const enableNotificationSound = () => {
-  try {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-    isAudioEnabled = true;
-    isAudioInitialized = true;
-    localStorage.setItem('notificationSoundEnabled', 'true');
-    playNotificationSound();
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+  document.addEventListener('click', handleFirstInteraction);
+  document.addEventListener('touchstart', handleFirstInteraction);
+  document.addEventListener('keydown', handleFirstInteraction);
+}
 
 export const useNotifications = (userId: string | undefined) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const lastCountRef = useRef(0);
+  const isFirstLoadRef = useRef(true);
+  const channelRef = useRef<any>(null);
 
-  useEffect(() => {
-    initAudioOnInteraction();
-  }, []);
-
-  useEffect(() => {
+  // Bildirimleri çek
+  const fetchNotifications = useCallback(async (showToast = false) => {
     if (!userId) return;
 
-    const fetchNotifications = async () => {
-      // 7 günden eski okunmamış bildirimleri otomatik temizle
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', userId)
-        .eq('is_read', false)
-        .lt('created_at', sevenDaysAgo.toISOString());
-
-      // Güncel bildirimleri çek
-      const { data } = await supabase
+    try {
+      const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', userId)
         .eq('is_read', false)
         .order('created_at', { ascending: false });
-      
-      console.log('📬 Okunmamış bildirimler:', data);
-      console.log('📊 Bildirim sayısı:', data?.length || 0);
-      
-      setNotifications(data || []);
-      setUnreadCount(data?.length || 0);
-    };
 
-    fetchNotifications();
+      if (error) {
+        console.error('Bildirim çekme hatası:', error);
+        return;
+      }
 
-    // Realtime dinle
-    const channel = supabase
-      .channel(`notifications-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('🔔 YENİ BİLDİRİM:', payload.new);
-          
-          const notificationData = payload.new as any;
-          
-          // Ses çal
-          playNotificationSound();
-          
-          // Toast göster
-          toast.info(`🔔 ${notificationData.title}`, {
-            description: notificationData.message,
+      const newCount = data?.length || 0;
+      
+      // İlk yükleme değilse ve yeni bildirim geldiyse
+      if (!isFirstLoadRef.current && newCount > lastCountRef.current) {
+        const diff = newCount - lastCountRef.current;
+        console.log(`🔔 ${diff} yeni bildirim!`);
+        
+        // Ses çal
+        playNotificationSound();
+        
+        // Toast göster
+        if (data && data.length > 0) {
+          const newest = data[0];
+          toast.info(`🔔 ${newest.title}`, {
+            description: newest.message,
             duration: 5000,
           });
-          
-          // Push Notification gönder (sayfa arka plandaysa veya kapalıysa)
-          if ('Notification' in window && Notification.permission === 'granted') {
-            // Eğer sayfa arka plandaysa veya hidden ise
-            if (document.hidden) {
-              console.log('📢 Push Notification gönderiliyor (sayfa arka planda)');
-              new Notification(notificationData.title || '🔔 Yeni Görev', {
-                body: notificationData.message || 'Yeni bir görev atandı',
-                icon: '/fikret-petrol-logo.png',
-                badge: '/fikret-petrol-logo.png',
-                tag: 'task-notification',
-                requireInteraction: false,
-                silent: false
-              });
-            } else {
-              console.log('👀 Sayfa aktif - sadece toast gösteriliyor');
-            }
-          }
-          
-          setNotifications(prev => [notificationData, ...prev]);
-          setUnreadCount(prev => prev + 1);
         }
-      )
-      .subscribe();
+      }
+
+      isFirstLoadRef.current = false;
+      lastCountRef.current = newCount;
+      setNotifications(data || []);
+      setUnreadCount(newCount);
+    } catch (err) {
+      console.error('Bildirim hatası:', err);
+    }
+  }, [userId]);
+
+  // Realtime + Polling
+  useEffect(() => {
+    if (!userId) return;
+
+    initAudio();
+    
+    // İlk yükleme
+    fetchNotifications();
+
+    // Realtime subscription
+    const setupRealtime = async () => {
+      try {
+        // Mevcut session'ı al
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log('⚠️ Auth session yok, sadece polling kullanılacak');
+          return;
+        }
+
+        console.log('📡 Realtime bağlantısı kuruluyor...');
+        
+        channelRef.current = supabase
+          .channel(`notifications-${userId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'notifications',
+              filter: `user_id=eq.${userId}`
+            },
+            (payload) => {
+              console.log('🔔 Realtime bildirim:', payload.new);
+              
+              // Ses çal
+              playNotificationSound();
+              
+              // Toast göster
+              const newNotif = payload.new as any;
+              toast.info(`🔔 ${newNotif.title}`, {
+                description: newNotif.message,
+                duration: 5000,
+              });
+              
+              // State güncelle
+              setNotifications(prev => [newNotif, ...prev]);
+              setUnreadCount(prev => prev + 1);
+              lastCountRef.current += 1;
+            }
+          )
+          .subscribe((status) => {
+            console.log('📡 Realtime status:', status);
+          });
+      } catch (err) {
+        console.error('Realtime hatası:', err);
+      }
+    };
+
+    setupRealtime();
+
+    // Polling - her 10 saniyede kontrol (fallback)
+    const pollInterval = setInterval(() => {
+      fetchNotifications();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
-  }, [userId]);
+  }, [userId, fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
     setNotifications(prev => prev.filter(n => n.id !== id));
     setUnreadCount(prev => Math.max(0, prev - 1));
+    lastCountRef.current = Math.max(0, lastCountRef.current - 1);
   };
 
   const markAllAsRead = async () => {
@@ -198,8 +203,21 @@ export const useNotifications = (userId: string | undefined) => {
       .eq('is_read', false);
     setNotifications([]);
     setUnreadCount(0);
+    lastCountRef.current = 0;
   };
 
-  return { notifications, unreadCount, markAsRead, markAllAsRead };
+  const enableSound = useCallback(() => {
+    unlockAudio();
+    // Test sesi çal
+    setTimeout(() => {
+      if (isAudioUnlocked && globalAudio) {
+        globalAudio.currentTime = 0;
+        globalAudio.play().catch(() => {});
+      }
+    }, 100);
+  }, []);
+
+  return { notifications, unreadCount, markAsRead, markAllAsRead, enableSound };
 };
 
+export default useNotifications;

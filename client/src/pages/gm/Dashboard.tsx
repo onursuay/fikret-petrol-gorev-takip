@@ -16,12 +16,14 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { NotificationBell } from '@/components/NotificationBell';
-import { PushNotificationPermission } from '@/components/PushNotificationPermission';
+import { NotificationPermission } from '@/components/NotificationPermission';
 import { parseTasksFromExcel, getDelayBadge } from '@/utils/excelUtils';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function GMDashboard() {
   const [, setLocation] = useLocation();
   const { user, loading: authLoading, signOut } = useAuthContext();
+  const { enableSound } = useNotifications(user?.id);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, positive: 0, negative: 0, pending: 0 });
   const [loading, setLoading] = useState(true);
@@ -455,7 +457,7 @@ export default function GMDashboard() {
 
   return (
     <>
-      <PushNotificationPermission />
+      <NotificationPermission onEnable={enableSound} />
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}

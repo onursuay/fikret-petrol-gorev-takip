@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Volume2, VolumeX } from 'lucide-react';
-import { useNotifications, enableNotificationSound } from '@/hooks/useNotifications';
+import { Bell } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationBellProps {
   userId: string | undefined;
@@ -9,7 +9,6 @@ interface NotificationBellProps {
 export const NotificationBell = ({ userId }: NotificationBellProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
   const [open, setOpen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Dışarı tıklayınca kapat
@@ -38,10 +37,6 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
   }, [open]);
 
   const handleBellClick = () => {
-    if (!soundEnabled) {
-      const enabled = enableNotificationSound();
-      setSoundEnabled(enabled);
-    }
     setOpen(!open);
   };
 

@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, LogOut, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { NotificationBell } from '@/components/NotificationBell';
-import { PushNotificationPermission } from '@/components/PushNotificationPermission';
+import { NotificationPermission } from '@/components/NotificationPermission';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface TaskAssignment {
   id: string;
@@ -22,6 +23,7 @@ interface TaskAssignment {
 export default function StaffDashboard() {
   const [, setLocation] = useLocation();
   const { user, loading: authLoading, signOut } = useAuthContext();
+  const { enableSound } = useNotifications(user?.id);
   const [assignments, setAssignments] = useState<TaskAssignment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -115,7 +117,7 @@ export default function StaffDashboard() {
 
   return (
     <>
-      <PushNotificationPermission />
+      <NotificationPermission onEnable={enableSound} />
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card sticky top-0 z-50 relative overflow-hidden">
         {/* Işık çubuğu animasyonu - sadece PC'de */}
