@@ -68,7 +68,7 @@ export const useNotifications = (userId: string | undefined) => {
   const channelRef = useRef<any>(null);
 
   // Bildirimleri çek
-  const fetchNotifications = useCallback(async (showToast = false) => {
+  const fetchNotifications = useCallback(async () => {
     if (!userId) return;
 
     try {
@@ -86,15 +86,30 @@ export const useNotifications = (userId: string | undefined) => {
 
       const newCount = data?.length || 0;
       
-      // İlk yükleme değilse ve yeni bildirim geldiyse
+      console.log('📬 Bildirimler:', newCount, 'Önceki:', lastCountRef.current, 'İlk yükleme:', isFirstLoadRef.current);
+
+      // İLK YÜKLEME: Okunmamış bildirim varsa ve ses aktifse çal
+      if (isFirstLoadRef.current && newCount > 0) {
+        const soundEnabled = localStorage.getItem('notificationSoundEnabled');
+        if (soundEnabled === 'true') {
+          console.log('🔔 Giriş yapıldı, okunmamış bildirim var, ses çalınıyor...');
+          // Kısa gecikme - sayfanın tam yüklenmesi için
+          setTimeout(() => {
+            playNotificationSound();
+            toast.info(`🔔 ${newCount} okunmamış bildiriminiz var`, {
+              duration: 5000,
+            });
+          }, 1000);
+        }
+      }
+      
+      // SONRAKI KONTROLLER: Yeni bildirim geldiyse çal
       if (!isFirstLoadRef.current && newCount > lastCountRef.current) {
         const diff = newCount - lastCountRef.current;
         console.log(`🔔 ${diff} yeni bildirim!`);
         
-        // Ses çal
         playNotificationSound();
         
-        // Toast göster
         if (data && data.length > 0) {
           const newest = data[0];
           toast.info(`🔔 ${newest.title}`, {
