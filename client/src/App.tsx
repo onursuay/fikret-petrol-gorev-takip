@@ -1,57 +1,66 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import StaffDashboard from "./pages/staff/Dashboard";
-import StaffTaskDetail from "./pages/staff/TaskDetail";
-import SupervisorDashboard from "./pages/supervisor/Dashboard";
-import SupervisorStaff from "./pages/supervisor/Staff";
-import SupervisorStaffEdit from "./pages/supervisor/StaffEdit";
-import SupervisorTaskForward from "./pages/supervisor/TaskForward";
-import SupervisorTaskReview from "./pages/supervisor/TaskReview";
-import GMDashboard from "./pages/gm/Dashboard";
-import GMUsers from "./pages/gm/Users";
-import GMUserNew from "./pages/gm/UserNew";
-import GMUserEdit from "./pages/gm/UserEdit";
-import GMTaskDetail from "./pages/gm/TaskDetail";
+import { Spinner } from "./components/ui/spinner";
+
+// Lazy load pages for better code splitting
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Login = lazy(() => import("@/pages/Login"));
+const StaffDashboard = lazy(() => import("@/pages/staff/Dashboard"));
+const StaffTaskDetail = lazy(() => import("@/pages/staff/TaskDetail"));
+const SupervisorDashboard = lazy(() => import("@/pages/supervisor/Dashboard"));
+const SupervisorStaff = lazy(() => import("@/pages/supervisor/Staff"));
+const SupervisorStaffEdit = lazy(() => import("@/pages/supervisor/StaffEdit"));
+const SupervisorTaskForward = lazy(() => import("@/pages/supervisor/TaskForward"));
+const SupervisorTaskReview = lazy(() => import("@/pages/supervisor/TaskReview"));
+const GMDashboard = lazy(() => import("@/pages/gm/Dashboard"));
+const GMUsers = lazy(() => import("@/pages/gm/Users"));
+const GMUserNew = lazy(() => import("@/pages/gm/UserNew"));
+const GMUserEdit = lazy(() => import("@/pages/gm/UserEdit"));
+const GMTaskDetail = lazy(() => import("@/pages/gm/TaskDetail"));
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={Login} />
-      <Route path={"/staff/dashboard"} component={StaffDashboard} />
-      <Route path="/staff/task/:id">
-        {(params) => <StaffTaskDetail taskId={params.id} />}
-      </Route>
-      <Route path={"/supervisor/dashboard"} component={SupervisorDashboard} />
-      <Route path={"/supervisor/staff"} component={SupervisorStaff} />
-      <Route path="/supervisor/staff/:id/edit">
-        {(params) => <SupervisorStaffEdit staffId={params.id} />}
-      </Route>
-      <Route path="/supervisor/task/:id/forward">
-        {(params) => <SupervisorTaskForward taskId={params.id} />}
-      </Route>
-      <Route path="/supervisor/task/:id/review">
-        {(params) => <SupervisorTaskReview taskId={params.id} />}
-      </Route>
-      <Route path="/gm/dashboard" component={GMDashboard} />
-      <Route path="/gm/users" component={GMUsers} />
-      <Route path="/gm/users/new" component={GMUserNew} />
-      <Route path="/gm/users/:id/edit">
-        {(params) => <GMUserEdit userId={params.id} />}
-      </Route>
-      <Route path="/gm/task/:id">
-        {(params) => <GMTaskDetail taskId={params.id} />}
-      </Route>
-      <Route path={"/404"} component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    }>
+      <Switch>
+        <Route path={"/"} component={Login} />
+        <Route path={"/staff/dashboard"} component={StaffDashboard} />
+        <Route path="/staff/task/:id">
+          {(params) => <StaffTaskDetail taskId={params.id} />}
+        </Route>
+        <Route path={"/supervisor/dashboard"} component={SupervisorDashboard} />
+        <Route path={"/supervisor/staff"} component={SupervisorStaff} />
+        <Route path="/supervisor/staff/:id/edit">
+          {(params) => <SupervisorStaffEdit staffId={params.id} />}
+        </Route>
+        <Route path="/supervisor/task/:id/forward">
+          {(params) => <SupervisorTaskForward taskId={params.id} />}
+        </Route>
+        <Route path="/supervisor/task/:id/review">
+          {(params) => <SupervisorTaskReview taskId={params.id} />}
+        </Route>
+        <Route path="/gm/dashboard" component={GMDashboard} />
+        <Route path="/gm/users" component={GMUsers} />
+        <Route path="/gm/users/new" component={GMUserNew} />
+        <Route path="/gm/users/:id/edit">
+          {(params) => <GMUserEdit userId={params.id} />}
+        </Route>
+        <Route path="/gm/task/:id">
+          {(params) => <GMTaskDetail taskId={params.id} />}
+        </Route>
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

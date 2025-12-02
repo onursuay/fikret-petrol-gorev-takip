@@ -21,6 +21,24 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks for better caching
+          'react-vendor': ['react', 'react-dom', 'wouter'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tooltip'],
+          'supabase': ['@supabase/supabase-js'],
+          'utils': ['date-fns', 'clsx', 'tailwind-merge'],
+          'charts': ['recharts'],
+          'excel': ['xlsx'],
+          'form': ['react-hook-form', 'zod'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+    minify: 'esbuild',
+    target: 'es2020',
+    sourcemap: false,
   },
   server: {
     host: '0.0.0.0',
