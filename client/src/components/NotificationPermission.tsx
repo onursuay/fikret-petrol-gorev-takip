@@ -74,3 +74,6 @@ export const NotificationPermission = ({ onEnable }: Props) => {
 
 export default NotificationPermission;
 
+
+
+
